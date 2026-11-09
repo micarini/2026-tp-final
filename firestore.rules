@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// Reglas de Firestore para Tuppi. Se publican pegándolas en
+// Firebase Console > Firestore > Reglas.
+//
+// La app escribe desde el servidor con firebase-admin, que no pasa por estas reglas.
+// Estas reglas son la segunda barrera: si algún día alguien accede desde un navegador,
+// cada usuario solo ve y toca lo suyo.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // users/{uid} y todo lo que cuelga (comensales, recetas, usoIA).
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Cualquier otra ruta queda cerrada.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
