@@ -241,3 +241,11 @@ Si un día se atrasa, se recorta en este orden: H8, después las capturas de H7,
   7. Importar.
 - **Preguntas que conviene saber contestar:** por qué una cookie httpOnly y no el token en el navegador, por qué el control lo hace el código y no la IA, cómo se aísla cada usuario (reglas + `requireUser`), y qué hace `cacheComponents`.
 - H8 solo si todo lo anterior está terminado.
+
+## Pendientes de la consigna (README del profesor)
+
+- **README final:** completar capturas, link al deploy y usuario de prueba, y la reflexión sobre el uso de IA (qué aportó, qué hubo que corregir, qué se aprendió). Declarar también las ilustraciones de Gemini si se usan.
+- **Context API:** la consigna lo pide "cuando la app lo requiera". Hoy no hay ningún `createContext`; conviene sumar uno (por ejemplo, el usuario activo) o justificar por qué no hace falta.
+- **Opcionales:** hay que elegir al menos 2. Ya hay búsqueda y filtros y accesibilidad; confirmar el segundo en el README.
+- **Historial de commits:** pedir un commit por paso, porque la consigna pide ver el desarrollo en el historial.
+- **Validar el usuario objetivo** hablando con 3 o 4 personas del perfil, si hay tiempo (ver `docs/investigacion.md`).

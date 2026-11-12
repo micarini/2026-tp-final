@@ -25,18 +25,25 @@ function Item({ href, texto, Icono, activo }) {
       href={href}
       aria-current={activo ? "page" : undefined}
       className={
-        "flex min-h-14 flex-1 flex-col items-center justify-center gap-1 rounded-full px-3 text-xs font-medium " +
-        "transition-colors duration-200 lg:min-h-11 lg:flex-none lg:flex-row lg:gap-2 lg:px-5 lg:text-base " +
+        "flex min-h-[4.75rem] flex-1 flex-col items-center justify-center gap-1 px-1 text-[0.95rem] font-medium " +
+        "text-hoja-900 transition-colors duration-200 lg:min-h-11 lg:flex-none lg:flex-row lg:gap-2 lg:rounded-full lg:px-5 lg:text-base " +
         (activo
-          ? "bg-hoja-100 text-hoja-900 lg:bg-hoja-700 lg:text-blanco"
-          : "text-hoja-100 hover:bg-hoja-700 hover:text-blanco")
+          ? "lg:bg-hoja-700 lg:text-blanco"
+          : "hover:bg-hoja-100 lg:text-hoja-100 lg:hover:bg-hoja-700 lg:hover:text-blanco")
       }
     >
       {/* La key cambia al activarse: el ícono se vuelve a montar y da su saltito */}
-      <span key={activo ? "activo" : "inactivo"} className={activo ? "animate-salto" : ""}>
+      <span
+        key={activo ? "activo" : "inactivo"}
+        className={
+          "grid size-14 place-items-center rounded-full " +
+          (activo ? "bg-hoja-100 text-hoja-900 lg:size-auto lg:rounded-none lg:bg-transparent lg:text-inherit" : "") +
+          (activo ? " animate-salto" : "")
+        }
+      >
         <Icono />
       </span>
-      {texto}
+      <span>{texto}</span>
     </Link>
   );
 }
@@ -48,7 +55,8 @@ export default function Navegacion() {
     <nav
       aria-label="Principal"
       className={
-        "fixed inset-x-0 bottom-0 z-10 bg-hoja-900 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] " +
+        "fixed inset-x-0 bottom-0 z-10 border-t border-borde bg-blanco px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgb(18_56_40_/_0.06)] " +
+        "lg:border-0 lg:bg-hoja-900 lg:shadow-none " +
         "lg:sticky lg:top-0 lg:bottom-auto lg:px-24 lg:py-3"
       }
     >
