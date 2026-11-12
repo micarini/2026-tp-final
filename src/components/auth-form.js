@@ -51,7 +51,10 @@ const MENSAJES_FIREBASE = {
 };
 
 function mensajeDeError(error) {
-  return MENSAJES_FIREBASE[error?.code] ?? "Algo salió mal. Probá de nuevo.";
+  if (MENSAJES_FIREBASE[error?.code]) return MENSAJES_FIREBASE[error.code];
+  // Un código auth/... que no conocemos viene de Firebase; si no tiene código, falló nuestro servidor.
+  if (String(error?.code ?? "").startsWith("auth/")) return "No pudimos iniciar sesión. Probá de nuevo.";
+  return "El servidor no respondió. Esperá un momento y probá de nuevo.";
 }
 
 // Solo aceptamos destinos de nuestro propio sitio, para que nadie arme un link
