@@ -21,6 +21,13 @@ export const metadata = {
   },
   description:
     "Tu recetario personal: cociná con lo que tenés en casa, respetando las restricciones de cada comensal.",
+  icons: {
+    icon: [
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export const viewport = {
