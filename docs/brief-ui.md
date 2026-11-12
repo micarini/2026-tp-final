@@ -38,9 +38,9 @@
 
 1. **Landing (`/`)**:
    - La ilustración de papel recortado ocupa más de la mitad de la pantalla y las verduras se salen del cuadro.
-   - Encima van tres etiquetas de ingrediente y el sello, que flotan.
-   - Abajo, el texto mínimo: el título "¿Qué hay en tu heladera?", una línea ("Recetas para 1 o 2 con lo que tenés."), el botón "Empezar" y el link "Ya tengo cuenta".
-   - En desktop: texto a la izquierda e ilustración a la derecha, a sangre.
+   - Sin etiquetas ni sellos encima: la ilustración sola.
+   - Abajo, el texto mínimo: el título "Abrí la heladera.", la línea "Tuppi hace el resto.", el botón "Empezar" y el link "Ya tengo cuenta".
+   - En desktop: texto a la izquierda e ilustración a la derecha, como un cartel con esquinas redondeadas.
 2. **Registro (`/registro`)**: nombre, email y contraseña, o Google. Al terminar, va directo al perfil.
 3. **Perfil, primera vez (`/perfil`)**: "¿Hay algo que no comés?". Restricciones y alergias como etiquetas que se tocan para activarse, más las porciones habituales (1 o 2). Botón "Listo".
 4. **¿Qué cocino hoy? (`/cocinar`)**:
@@ -154,7 +154,7 @@
 | **Cambiar de sección** (navegación) | El ícono del destino nuevo da un saltito y el fondo verde se desliza hasta él | Ícono 300 ms con resorte; fondo con `transform`, 250 ms, ease-out |
 | **Hover en tarjetas** (desktop) | La tarjeta se levanta 3 px y se inclina −1°, como un papel sobre la mesa | 200 ms, `ease`, solo con `(hover: hover)` |
 | **Estados vacíos** | La nota del mantel se balancea apenas al pasar el mouse | `rotate(-2°)` → `rotate(1°)`, 400 ms, resorte |
-| **Landing** | Al cargar, las etiquetas y el sello caen sobre la ilustración, uno detrás del otro | Una sola vez, 400 ms por elemento, 100 ms de desfasaje; no se repite al volver |
+| **Landing** | Al cargar, las verduras de la ilustración caen y se acomodan, una detrás de la otra | Una sola vez, 700 ms por pieza con resorte, 110 ms de desfasaje |
 
 **Reglas:**
 - Solo se animan `transform` y `opacity`. Nunca `transition: all`, nunca propiedades de layout.

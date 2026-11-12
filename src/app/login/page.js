@@ -1,4 +1,5 @@
 import AuthForm from "@/components/auth-form";
+import AuthMarco from "@/components/auth-marco";
 
 export const metadata = {
   title: "Ingresar",
@@ -7,9 +8,8 @@ export const metadata = {
 
 export default function LoginPage() {
   return (
-    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-6 py-16">
-      <h1 className="text-2xl font-semibold">Ingresar</h1>
+    <AuthMarco titulo="Ingresá a Tuppi" bajada="Tu recetario te está esperando.">
       <AuthForm modo="login" />
-    </main>
+    </AuthMarco>
   );
 }

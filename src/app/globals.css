@@ -1,26 +1,150 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/*
+  Tokens de Tuppi (docs/brief-ui.md, sección 5).
+  Con @theme, Tailwind 4 crea las clases solas: --color-hoja-900 → bg-hoja-900, text-hoja-900, etc.
+*/
+@theme {
+  /* Interfaz: verde y neutros */
+  --color-hoja-900: #123828;
+  --color-hoja-700: #1f5a3f;
+  --color-hoja-100: #e3eee6;
+  --color-papel: #f5f7f3;
+  --color-blanco: #ffffff;
+  --color-tinta: #10231b;
+  --color-tinta-2: #4a5d53;
+  --color-tinta-3: #73847a; /* solo placeholders: no pasa 4,5:1 */
+  --color-borde: #d5ddd7;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  /* El único acento de la interfaz */
+  --color-tomate: #c63b22;
+  --color-tomate-suave: #faeae6;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  /* Verduras: solo en ilustraciones y etiquetas de contenido */
+  --color-morron: #f2b731;
+  --color-rabanito: #e46aa0;
+  --color-zanahoria: #f07c2a;
+  --color-lechuga: #8dc26f;
+  --color-tomate-ilus: #e0452b;
+  --color-mantel: #5b7fe0;
+
+  /* Tipografías: las variables las define next/font en layout.js */
+  --font-titulo: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-figtree), system-ui, sans-serif;
+
+  /* Forma */
+  --radius-tarjeta: 16px;
+  --radius-campo: 12px;
+  --shadow-tarjeta: 0 1px 2px rgb(18 56 40 / 0.06), 0 8px 24px rgb(18 56 40 / 0.08);
+
+  /*
+    Curvas de movimiento (sección 7).
+    linear() dibuja la curva punto por punto: así hacemos un resorte que se pasa
+    un poco y vuelve, sin librerías.
+  */
+  --ease-resorte: linear(0, 0.009, 0.035 2.1%, 0.141, 0.281 6.7%, 0.723 12.9%, 0.938 16.7%, 1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%, 1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%, 0.974 53.8%, 0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1.004 83.8%, 1);
+  --ease-suave: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Animaciones: cada una se usa como clase, por ejemplo animate-pegar */
+  --animate-pegar: pegar 360ms var(--ease-resorte) both;
+  --animate-pop: pop 280ms var(--ease-resorte);
+  --animate-sello: sello 300ms var(--ease-resorte) both;
+  --animate-salto: salto 400ms var(--ease-resorte);
+  --animate-subir: subir 320ms var(--ease-suave) both;
+  --animate-caer: caer 700ms var(--ease-resorte) both;
+
+  @keyframes pegar {
+    from {
+      opacity: 0;
+      transform: scale(0.6) rotate(var(--giro, 0deg));
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) rotate(var(--giro, 0deg));
+    }
+  }
+  @keyframes pop {
+    50% {
+      transform: scale(1.12);
+    }
+  }
+  @keyframes sello {
+    from {
+      opacity: 0;
+      transform: scale(1.6) rotate(-20deg);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) rotate(8deg);
+    }
+  }
+  @keyframes salto {
+    40% {
+      transform: translateY(-6px);
+    }
+  }
+  @keyframes subir {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+  }
+  @keyframes caer {
+    from {
+      opacity: 0;
+      transform: translateY(-48px) rotate(-6deg);
+    }
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-papel);
+  color: var(--color-tinta);
+}
+
+/* Foco visible y del mismo estilo en toda la app */
+:focus-visible {
+  outline: 2px solid var(--color-hoja-700);
+  outline-offset: 2px;
+}
+
+/* Mantel de cuadrillé: solo para la landing y los estados vacíos */
+.mantel {
+  background-color: var(--color-blanco);
+  background-image:
+    linear-gradient(rgb(91 127 224 / 0.18) 50%, transparent 50%),
+    linear-gradient(90deg, rgb(91 127 224 / 0.18) 50%, transparent 50%);
+  background-size: 24px 24px;
+}
+
+/*
+  Movimiento reducido: la misma información, sin rebotes ni saltos.
+  Todas las animaciones pasan a ser un fundido corto.
+*/
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 150ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Lo que entra en pantalla aparece con un fundido */
+  .animate-pegar,
+  .animate-sello,
+  .animate-subir,
+  .animate-caer {
+    animation-name: fundido !important;
+  }
+  /* Lo que solo rebota (pop, salto) directamente no se mueve */
+  .animate-pop,
+  .animate-salto {
+    animation: none !important;
+  }
+  @keyframes fundido {
+    from {
+      opacity: 0;
+    }
+  }
 }

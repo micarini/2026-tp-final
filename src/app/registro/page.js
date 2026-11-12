@@ -1,4 +1,5 @@
 import AuthForm from "@/components/auth-form";
+import AuthMarco from "@/components/auth-marco";
 
 export const metadata = {
   title: "Crear cuenta",
@@ -7,9 +8,8 @@ export const metadata = {
 
 export default function RegistroPage() {
   return (
-    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-6 py-16">
-      <h1 className="text-2xl font-semibold">Crear cuenta</h1>
+    <AuthMarco titulo="Creá tu cuenta" bajada="Para guardar tus recetas y lo que no comés.">
       <AuthForm modo="registro" />
-    </main>
+    </AuthMarco>
   );
 }

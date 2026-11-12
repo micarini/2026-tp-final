@@ -1,13 +1,16 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Figtree } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Fraunces para títulos (tono de recetario de papel) y Figtree para la interfaz.
+// next/font las descarga en el build y las sirve desde nuestro dominio: no hay pedido a Google al navegar.
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
+  axes: ["SOFT", "opsz"], // SOFT redondea las puntas de las letras
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const figtree = Figtree({
+  variable: "--font-figtree",
   subsets: ["latin"],
 });
 
@@ -17,16 +20,20 @@ export const metadata = {
     template: "%s · Tuppi",
   },
   description:
-    "Tu recetario personal: cociná para 1 o 2 con lo que tenés en casa, respetando las restricciones de cada comensal.",
+    "Tu recetario personal: cociná con lo que tenés en casa, respetando las restricciones de cada comensal.",
+};
+
+export const viewport = {
+  themeColor: "#123828",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${figtree.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex min-h-full flex-col font-sans">{children}</body>
     </html>
   );
 }

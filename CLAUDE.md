@@ -23,7 +23,8 @@ La fuente de verdad del producto es `docs/prd-v1.md`. Leelo antes de cualquier f
 
 ## Arquitectura
 
-- `src/app/`: rutas del App Router. Hoy: `/` (landing provisoria), `/login`, `/registro`, `/cocinar` (provisoria, para probar la sesión).
+- `src/app/`: rutas del App Router. Públicas: `/`, `/login`, `/registro`. Privadas dentro del grupo `src/app/(app)/` (comparten la navegación): `/cocinar`, `/recetario`, `/comensales`, `/perfil`.
+- `src/components/ui/`: componentes base (`Boton`, `Campo`, `Etiqueta`, `Sello`). Los tokens de diseño y las animaciones viven en `src/app/globals.css` (`@theme`).
 - Auth: el navegador inicia sesión con Firebase y manda el token a la Server Action `createSession` (`src/app/actions/auth.js`), que lo cambia por la cookie httpOnly `tuppi_session` (5 días). `src/lib/session.js` (`getCurrentUser`, `requireUser`) es el único lugar que valida la sesión: usalo en cada página privada y en cada Server Action. `src/proxy.js` solo redirige si falta la cookie.
 - `src/lib/firebase-admin.js` exporta funciones (`adminAuth()`, `db()`), no constantes, para que el build no falle sin variables de entorno. Igual `getClientAuth()` en `src/lib/firebase-client.js`.
 - `firestore.rules`: reglas a pegar en la consola de Firebase.
@@ -63,5 +64,4 @@ La fuente de verdad del producto es `docs/prd-v1.md`. Leelo antes de cualquier f
 - **`cacheComponents: true`** está activado en `next.config.mjs`. Cualquier lectura de datos sin caché o de APIs de runtime (`cookies()`, `headers()`, `searchParams`, Firestore) tiene que ir dentro de un `<Suspense>`; si no, el dev overlay marca la ruta como bloqueante (*blocking-route*). Usá `"use cache"` solo para datos que no dependen del usuario (por ejemplo, categorías de TheMealDB).
 - **En Next 16, `middleware` se llama `proxy`**: el archivo es `src/proxy.js`. Sirve para redirecciones optimistas (sin sesión → `/login`), pero la autorización real se valida en el servidor, no solo ahí.
 - Esta versión de Next es más nueva que mucho material online. Ante la duda, consultá la documentación incluida en `node_modules/next/dist/docs/`.
-- `globals.css` pisa la fuente con `font-family: Arial` en `body`; se reemplaza cuando se definan las tipografías.
 - TheMealDB busca ingredientes en inglés y de a uno por consulta: la intersección de resultados se hace en el código.

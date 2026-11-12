@@ -18,7 +18,8 @@ export async function createSession(idToken, nombre) {
   let decoded;
   try {
     decoded = await adminAuth().verifyIdToken(idToken);
-  } catch {
+  } catch (error) {
+    console.error("verifyIdToken falló:", error?.code ?? error?.message);
     return { error: "No pudimos iniciar sesión. Probá de nuevo." };
   }
 
@@ -28,19 +29,27 @@ export async function createSession(idToken, nombre) {
   }
 
   const expiresIn = SESSION_DAYS * 24 * 60 * 60 * 1000;
-  const sessionCookie = await adminAuth().createSessionCookie(idToken, {
-    expiresIn,
-  });
+  try {
+    const sessionCookie = await adminAuth().createSessionCookie(idToken, {
+      expiresIn,
+    });
 
-  (await cookies()).set(SESSION_COOKIE, sessionCookie, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: expiresIn / 1000,
-  });
+    (await cookies()).set(SESSION_COOKIE, sessionCookie, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: expiresIn / 1000,
+    });
 
-  await createUserDocIfMissing(decoded, nombre);
+    await createUserDocIfMissing(decoded, nombre);
+  } catch (error) {
+    // Si falla acá, la cuenta de Firebase ya existe pero no hay sesión.
+    // Logueamos solo el código (nunca tokens ni datos personales) para poder diagnosticarlo.
+    console.error("createSession falló:", error?.code ?? error?.message);
+    (await cookies()).delete(SESSION_COOKIE);
+    return { error: "No pudimos iniciar sesión. Probá ingresar de nuevo." };
+  }
   return { ok: true };
 }
 
@@ -80,4 +89,22 @@ export async function logout() {
 
   store.delete(SESSION_COOKIE);
   redirect("/login");
+}
+
+// Registro: avisa si el email ya tiene cuenta antes de que la persona escriba la contraseña.
+// Ojo para la defensa: esto deja averiguar si un email está registrado (enumeración).
+// Lo aceptamos porque ayuda mucho al registro y no expone ningún otro dato de la cuenta.
+// Devuelve true (ya existe), false (está libre) o null (no se pudo saber: no bloqueamos).
+export async function emailRegistrado(email) {
+  if (typeof email !== "string" || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return null;
+  }
+  try {
+    await adminAuth().getUserByEmail(email.trim().toLowerCase());
+    return true;
+  } catch (error) {
+    if (error?.code === "auth/user-not-found") return false;
+    console.error("emailRegistrado falló:", error?.code ?? error?.message);
+    return null;
+  }
 }

@@ -223,6 +223,7 @@ Si un día se atrasa, se recorta en este orden: H8, después las capturas de H7,
 ## Paso 10 — Margen y defensa (mié 18/11)
 
 - Lo que se haya atrasado.
+- **Recordatorio de Mia:** decidir si la contraseña pide también mayúscula o símbolo, y activar la misma regla en Firebase → Authentication → Settings → Password policy (hoy solo se controla en el navegador).
 - **README:**
   - Qué es Tuppi.
   - Cómo correrlo.
