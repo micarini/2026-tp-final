@@ -8,12 +8,23 @@ import { getFirestore } from "firebase-admin/firestore";
 function getAdminApp() {
   if (getApps().length) return getApps()[0];
 
+  const projectId = process.env.FIREBASE_PROJECT_ID?.trim();
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim().replace(/^"|"$/g, "");
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY
+    ?.trim()
+    .replace(/^"|"$/g, "")
+    .replace(/\\n/g, "\n");
+
+  if (!projectId || !clientEmail || !privateKey) {
+    throw new Error("Faltan variables FIREBASE_ADMIN en el servidor.");
+  }
+
   return initializeApp({
     credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      projectId,
+      clientEmail,
       // En .env la clave viene con "\n" escritos como texto: los pasamos a saltos de línea reales.
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      privateKey,
     }),
   });
 }
