@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { FieldValue } from "firebase-admin/firestore";
 import { requireUser } from "@/lib/session";
 import { db } from "@/lib/firebase-admin";
-import { IDS_RESTRICCIONES, IDS_ALERGIAS } from "@/lib/restricciones";
+import {
+  IDS_RESTRICCIONES,
+  IDS_ALERGIAS,
+  validarAlimentosEvitados,
+} from "@/lib/restricciones";
 
 // ABM de comensales (H3). Cada acción valida la sesión y escribe solo bajo users/{uid}/comensales,
 // así nadie puede tocar los comensales de otra persona aunque mande otro id.
@@ -14,6 +18,8 @@ function leerFormulario(formData) {
   const nombre = String(formData.get("nombre") ?? "").trim();
   const restricciones = [...new Set(formData.getAll("restricciones").map(String))];
   const alergias = [...new Set(formData.getAll("alergias").map(String))];
+  const validacionAlimentos = validarAlimentosEvitados(formData.get("alimentosEvitados"));
+  if (validacionAlimentos.error) return { error: validacionAlimentos.error };
 
   if (!nombre) return { error: "Ponele un nombre." };
   if (nombre.length > 40) return { error: "El nombre puede tener hasta 40 caracteres." };
@@ -23,7 +29,7 @@ function leerFormulario(formData) {
   if (!alergias.every((id) => IDS_ALERGIAS.includes(id))) {
     return { error: "Hay una alergia que no conocemos." };
   }
-  return { datos: { nombre, restricciones, alergias } };
+  return { datos: { nombre, restricciones, alergias, alimentosEvitados: validacionAlimentos.alimentos } };
 }
 
 function coleccion(uid) {

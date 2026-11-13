@@ -35,6 +35,7 @@ async function Contenido({ searchParams }) {
     nombre: datos.nombre ?? "",
     restricciones: datos.restricciones ?? [],
     alergias: datos.alergias ?? [],
+    alimentosEvitados: datos.alimentosEvitados ?? [],
     porcionesHabituales: datos.porcionesHabituales ?? 1,
   };
 

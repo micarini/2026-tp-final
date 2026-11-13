@@ -3,7 +3,11 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/session";
 import { db } from "@/lib/firebase-admin";
-import { IDS_RESTRICCIONES, IDS_ALERGIAS } from "@/lib/restricciones";
+import {
+  IDS_RESTRICCIONES,
+  IDS_ALERGIAS,
+  validarAlimentosEvitados,
+} from "@/lib/restricciones";
 
 // Guarda el perfil (H2). Se usa con useActionState: recibe el estado anterior y el FormData.
 // Todo se vuelve a validar acá: lo que llega del navegador puede venir modificado.
@@ -13,6 +17,7 @@ export async function actualizarPerfil(_estadoAnterior, formData) {
   const nombre = String(formData.get("nombre") ?? "").trim();
   const restricciones = formData.getAll("restricciones").map(String);
   const alergias = formData.getAll("alergias").map(String);
+  const validacionAlimentos = validarAlimentosEvitados(formData.get("alimentosEvitados"));
   const porciones = Number(formData.get("porcionesHabituales"));
 
   if (!nombre || nombre.length > 60) {
@@ -25,6 +30,7 @@ export async function actualizarPerfil(_estadoAnterior, formData) {
   if (!alergias.every((id) => IDS_ALERGIAS.includes(id))) {
     return { error: "Hay una alergia que no conocemos." };
   }
+  if (validacionAlimentos.error) return { error: validacionAlimentos.error };
   if (!Number.isInteger(porciones) || porciones < 1 || porciones > 4) {
     return { error: "Las porciones van de 1 a 4." };
   }
@@ -37,6 +43,7 @@ export async function actualizarPerfil(_estadoAnterior, formData) {
           nombre,
           restricciones: [...new Set(restricciones)],
           alergias: [...new Set(alergias)],
+          alimentosEvitados: validacionAlimentos.alimentos,
           porcionesHabituales: porciones,
         },
         { merge: true },

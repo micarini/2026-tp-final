@@ -70,6 +70,7 @@ async function Recetas({ searchParams }) {
       </form>
       {recetas.length === 0 ? (
         <EstadoVacio
+          imagen={snapshot.empty ? "/vacio-recetario.png" : "/sin-resultados.png"}
           titulo={snapshot.empty ? "Todavía no guardaste recetas" : "No encontramos recetas"}
           texto={snapshot.empty ? "Cuando una receta te guste, guardala y la vas a encontrar acá." : "Probá cambiar la búsqueda o los filtros."}
         >

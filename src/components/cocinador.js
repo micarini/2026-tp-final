@@ -5,6 +5,10 @@ import { sugerirRecetas } from "@/app/actions/cocinar";
 import GuardarReceta from "@/components/guardar-receta";
 import Etiqueta, { COLORES_ETIQUETA } from "@/components/ui/etiqueta";
 import Boton from "@/components/ui/boton";
+import Image from "next/image";
+import { fotoRespaldo } from "@/lib/respaldo";
+import { RESTRICCIONES, ALERGIAS } from "@/lib/restricciones";
+import { IconoCheck, IconoMas } from "@/components/iconos";
 
 const MAXIMO = 10;
 
@@ -104,88 +108,148 @@ function ListaIngredientes({ titulo, placeholder, lista, setLista, colorInicial,
   );
 }
 
-function TarjetaReceta({ receta, compacta = false, onAbrir }) {
+// Textos de los stickers: "sin gluten", "vegano", "sin maní"... Solo los del catálogo (no los alimentos evitados).
+function nombresSticker(receta) {
+  const ids = receta.restriccionesAplicadas ?? [];
+  const nombres = [];
+  for (const id of ids) {
+    const restriccion = RESTRICCIONES.find((opcion) => opcion.id === id);
+    const alergia = ALERGIAS.find((opcion) => opcion.id === id);
+    if (restriccion) nombres.push(restriccion.nombre.toLowerCase());
+    else if (alergia) nombres.push(`sin ${alergia.nombre.toLowerCase()}`);
+  }
+  return nombres.slice(0, 2);
+}
+
+// Foto de la receta con el sticker encima. El * avisa que la receta hubo que adaptarla.
+function FotoReceta({ receta, clase }) {
+  const nombres = nombresSticker(receta);
+  const adaptada = receta.advertencias.length > 0;
+  return (
+    <div className="relative">
+      {receta.imagen?.url ? (
+        <img src={receta.imagen.url} alt="" className={clase} />
+      ) : (
+        <Image src={fotoRespaldo(receta.titulo)} alt="" width={1280} height={720} className={clase} />
+      )}
+      <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+        {nombres.map((nombre, indice) => (
+          <span
+            key={nombre}
+            className="grid size-16 place-items-center rounded-full border-2 border-blanco bg-lechuga p-1 text-center text-[0.7rem] leading-tight font-semibold text-tinta shadow-tarjeta animate-pegar"
+            style={{ "--giro": `${indice === 0 ? -8 : 6}deg` }}
+          >
+            {nombre}{adaptada && "*"}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TarjetaReceta({ receta, compacta = false, onAbrir, onVolver }) {
   const propios = receta.ingredientes.filter((ingrediente) => !ingrediente.aComprar);
   const comprar = receta.ingredientes.filter((ingrediente) => ingrediente.aComprar);
 
   if (compacta) {
     return (
-      <button
-        type="button"
-        onClick={onAbrir}
-        className="group flex h-full flex-col overflow-hidden rounded-tarjeta border border-borde bg-blanco text-left shadow-tarjeta transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-lg"
-        aria-label={`Ver detalles de ${receta.titulo}`}
-      >
-        {receta.imagen?.url ? (
-          <img src={receta.imagen.url} alt="" className="aspect-[16/10] w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
-        ) : (
-          <div className="flex aspect-[16/10] items-center justify-center bg-hoja-100 font-titulo text-3xl text-hoja-700">Tuppi</div>
-        )}
+      <article className="group flex h-full flex-col overflow-hidden rounded-tarjeta border border-borde bg-blanco text-left shadow-tarjeta transition-[transform,box-shadow] duration-200 hover:-translate-y-1 hover:shadow-lg">
+        <FotoReceta receta={receta} clase="aspect-[16/10] w-full object-cover" />
         <span className="flex flex-1 flex-col gap-3 p-4">
           <span className="flex items-start justify-between gap-3">
             <span className="font-titulo text-xl font-semibold">{receta.titulo}</span>
             <span className="shrink-0 rounded-full bg-hoja-100 px-2.5 py-1 text-xs font-medium text-hoja-900">Apta</span>
           </span>
           <span className="line-clamp-2 text-sm text-tinta-2">{receta.porQueSirve}</span>
-          <span className="mt-auto flex items-center justify-between text-sm text-tinta-2">
-            <span>{receta.tiempoMin} min · {receta.porciones} porciones</span>
-            <span className="font-medium text-hoja-700">Ver más</span>
+          <span className="mt-auto rounded-campo bg-hoja-100 px-3 py-2 text-sm text-tinta-2">
+            {receta.tiempoMin} min · {receta.porciones} {receta.porciones === 1 ? "porción" : "porciones"}
           </span>
+          <Boton type="button" onClick={onAbrir} aria-label={`Ver receta de ${receta.titulo}`}>
+            Ver receta
+          </Boton>
         </span>
-      </button>
+      </article>
     );
   }
 
   return (
-    <article className="flex scroll-mt-6 flex-col gap-5 rounded-tarjeta bg-blanco p-5 shadow-tarjeta animate-subir sm:p-6" id="receta-abierta">
-      {receta.imagen?.url && (
-        <img src={receta.imagen.url} alt="" className="aspect-[16/9] w-full rounded-campo object-cover" />
-      )}
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <h2 className="font-titulo text-2xl font-semibold">{receta.titulo}</h2>
-          <span className="rounded-full bg-hoja-100 px-3 py-1 text-sm font-medium text-hoja-900">Apta</span>
-        </div>
-        <p className="text-tinta-2">{receta.porQueSirve}</p>
-        <p className="text-sm text-tinta-2">
-          {receta.tiempoMin} min · {receta.porciones} porciones
-        </p>
-      </div>
-
-      {receta.advertencias.length > 0 && (
-        <div className="rounded-campo bg-zanahoria/20 p-3 text-sm text-tinta" role="note">
-          <strong>Ojo:</strong> {receta.advertencias.join(" ")}
-        </div>
-      )}
-
-      <div className="grid gap-4 border-t border-borde pt-4 sm:grid-cols-2">
-        <div>
-          <h3 className="font-medium">Tenés</h3>
-          <ul className="mt-2 list-disc pl-5 text-sm">{propios.map((item) => <li key={item.nombre}>{item.nombre}</li>)}</ul>
-        </div>
-        <div>
-          <h3 className="font-medium">A comprar</h3>
-          {comprar.length === 0 ? (
-            <p className="mt-2 text-sm text-tinta-2">Nada por ahora.</p>
-          ) : (
-            <ul className="mt-2 list-disc pl-5 text-sm">{comprar.map((item) => <li key={item.nombre}>{item.nombre}</li>)}</ul>
-          )}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-4 border-t border-borde pt-4">
-        <h3 className="font-titulo text-xl font-semibold">Cómo se hace</h3>
-        <ol className="list-decimal space-y-2 pl-5">{receta.pasos.map((paso) => <li key={paso}>{paso}</li>)}</ol>
-        {receta.reemplazos.length > 0 && (
-          <p className="text-sm text-tinta-2"><strong>Reemplazos:</strong> {receta.reemplazos.join(" ")}</p>
+    <article className="flex flex-col gap-6 rounded-tarjeta bg-blanco p-5 shadow-tarjeta animate-subir sm:p-6 lg:grid lg:grid-cols-[300px_1fr] lg:items-start lg:gap-x-10">
+      <div className="flex flex-col gap-4">
+        <FotoReceta receta={receta} clase="aspect-[4/3] w-full rounded-campo object-cover" />
+        {receta.imagen?.credito && (
+          <a href={receta.imagen.link} target="_blank" rel="noreferrer" className="-mt-2 text-xs text-tinta-2 underline">
+            Foto de {receta.imagen.credito}
+          </a>
         )}
+        <div className="flex flex-col gap-2">
+          <span className="self-start rounded-full bg-hoja-100 px-3 py-1 text-sm font-medium text-hoja-900">Apta</span>
+          <h2 className="font-titulo text-2xl font-semibold">{receta.titulo}</h2>
+          <p className="text-tinta-2">{receta.porQueSirve}</p>
+          <p className="rounded-campo bg-hoja-100 px-3 py-2 text-sm text-tinta-2">
+            {receta.tiempoMin} min · {receta.porciones} {receta.porciones === 1 ? "porción" : "porciones"}
+          </p>
+        </div>
+        {receta.advertencias.length > 0 && (
+          <div className="rounded-campo bg-zanahoria/20 p-3 text-sm text-tinta" role="note">
+            <strong>*Ojo:</strong> {receta.advertencias.join(" ")}
+          </div>
+        )}
+        <div className="flex flex-wrap items-center gap-3">
+          <GuardarReceta receta={receta} />
+          <Boton type="button" variante="secundario" onClick={onVolver}>Volver a ideas</Boton>
+        </div>
       </div>
-      {receta.imagen?.credito && (
-        <a href={receta.imagen.link} target="_blank" rel="noreferrer" className="text-xs text-tinta-2 underline">
-          Foto de {receta.imagen.credito}
-        </a>
-      )}
-      <GuardarReceta receta={receta} />
+
+      <div className="flex flex-col gap-6">
+        <section className="flex flex-col gap-3">
+          <h3 className="font-titulo text-xl font-semibold">Los ingredientes</h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="rounded-campo bg-hoja-100 p-4">
+              <h4 className="text-sm font-semibold text-hoja-900">Tenés</h4>
+              <ul className="mt-2 flex flex-col gap-1.5 text-sm">
+                {propios.map((item, indice) => (
+                  <li key={`${item.nombre}-${indice}`} className="flex items-center gap-2">
+                    <IconoCheck className="size-4 shrink-0 text-hoja-700" />
+                    {item.nombre}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-campo border border-borde p-4">
+              <h4 className="flex justify-between text-sm font-semibold text-hoja-900">
+                A comprar <span className="font-normal text-tinta-2">{comprar.length}</span>
+              </h4>
+              {comprar.length === 0 ? (
+                <p className="mt-2 text-sm text-tinta-2">Nada por ahora.</p>
+              ) : (
+                <ul className="mt-2 flex flex-col gap-1.5 text-sm">
+                  {comprar.map((item, indice) => (
+                    <li key={`${item.nombre}-${indice}`} className="flex items-center gap-2">
+                      <IconoMas className="size-4 shrink-0 text-tomate" />
+                      {item.nombre}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className="flex flex-col gap-3">
+          <h3 className="font-titulo text-xl font-semibold">Cómo se hace</h3>
+          <ol className="flex flex-col gap-3">
+            {receta.pasos.map((paso, indice) => (
+              <li key={indice} className="flex gap-3">
+                <span className="grid size-7 shrink-0 place-items-center rounded-full bg-hoja-900 text-sm font-medium text-blanco">{indice + 1}</span>
+                <span className="pt-0.5">{paso}</span>
+              </li>
+            ))}
+          </ol>
+          {receta.reemplazos.length > 0 && (
+            <p className="text-sm text-tinta-2"><strong>Reemplazos:</strong> {receta.reemplazos.join(" ")}</p>
+          )}
+        </section>
+      </div>
     </article>
   );
 }
@@ -215,8 +279,27 @@ export default function Cocinador({ comensales }) {
     });
   }
 
+  // Al abrir una receta se muestra aparte, en lugar del formulario, con un botón para volver a las ideas.
+  if (recetaAbierta !== null && resultado?.recetas?.[recetaAbierta]) {
+    return (
+      <div className="flex flex-col gap-5">
+        <button
+          type="button"
+          onClick={() => setRecetaAbierta(null)}
+          className="self-start text-sm font-medium text-hoja-700 underline underline-offset-4"
+        >
+          Volver a las ideas
+        </button>
+        <div className="mx-auto w-full max-w-4xl">
+          <TarjetaReceta receta={resultado.recetas[recetaAbierta]} onVolver={() => setRecetaAbierta(null)} />
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile: formulario arriba y recetas abajo. Desktop: formulario a la izquierda y recetas a la derecha.
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,440px)_minmax(0,1fr)] lg:items-start lg:gap-12">
       <section className="flex flex-col gap-6 rounded-tarjeta bg-blanco p-5 shadow-tarjeta sm:p-6">
         <SelectorPersonas
           comensales={comensales}
@@ -248,6 +331,23 @@ export default function Cocinador({ comensales }) {
         )}
       </section>
 
+      {!(resultado?.recetas?.length > 0) && (
+        <section className="flex flex-col overflow-hidden rounded-tarjeta bg-blanco shadow-tarjeta">
+          <Image
+            src="/receta-respaldo-2.png"
+            alt=""
+            width={1280}
+            height={720}
+            priority
+            className="aspect-[16/9] w-full object-cover"
+          />
+          <div className="flex flex-col gap-1 p-5 sm:p-6">
+            <h2 className="font-titulo text-xl font-semibold">Tus recetas van a aparecer acá</h2>
+            <p className="text-tinta-2">Sumá lo que tenés en la heladera y tocá Buscar recetas.</p>
+          </div>
+        </section>
+      )}
+
       {resultado?.recetas?.length > 0 && (
         <section className="flex flex-col gap-5" aria-live="polite">
           <div className="flex flex-wrap items-end justify-between gap-3">
@@ -257,7 +357,7 @@ export default function Cocinador({ comensales }) {
             </div>
             <span className="text-sm text-tinta-2">{resultado.recetas.length} sugerencias</span>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             {resultado.recetas.map((receta, indice) => (
               <TarjetaReceta
                 key={`${receta.titulo}-${receta.origen}`}
@@ -265,14 +365,11 @@ export default function Cocinador({ comensales }) {
                 compacta
                 onAbrir={() => {
                   setRecetaAbierta(indice);
-                  requestAnimationFrame(() => document.getElementById("receta-abierta")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+                  window.scrollTo({ top: 0 });
                 }}
               />
             ))}
           </div>
-          {recetaAbierta !== null && resultado.recetas[recetaAbierta] && (
-            <TarjetaReceta receta={resultado.recetas[recetaAbierta]} />
-          )}
         </section>
       )}
     </div>

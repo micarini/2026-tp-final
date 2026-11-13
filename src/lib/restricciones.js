@@ -108,6 +108,13 @@ const ESCONDEN_GLUTEN = [
 const TODAS = [...RESTRICCIONES, ...ALERGIAS];
 export const IDS_RESTRICCIONES = RESTRICCIONES.map((r) => r.id);
 export const IDS_ALERGIAS = ALERGIAS.map((a) => a.id);
+const PREFIJO_ALIMENTO = "alimento:";
+const CONDICIONES_MEDICAS = [
+  "diabetes", "diabetico", "diabetica", "celiaquia", "celiaco", "celiaca",
+  "hipertension", "hipertenso", "hipertensa", "colesterol", "insulina",
+  "renal", "renales", "embarazo", "embarazada", "anemia", "lupus", "crohn",
+  "epilepsia", "autismo", "artritis", "asma", "alergia", "alergico", "alergica",
+];
 
 // "Jamón Cocido" → "jamon cocido": minúsculas y sin tildes, para comparar sin sorpresas.
 export function normalizar(texto) {
@@ -117,6 +124,34 @@ export function normalizar(texto) {
     .replace(/[̀-ͯ]/g, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+export function normalizarAlimentosEvitados(valor) {
+  const lista = Array.isArray(valor) ? valor : String(valor ?? "").split(",");
+  return [...new Set(
+    lista
+      .map((item) => normalizar(item))
+      .filter(Boolean)
+      .slice(0, 10),
+  )].filter((item) => item.length <= 60);
+}
+
+export function validarAlimentosEvitados(valor) {
+  const originales = String(valor ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const alimentos = normalizarAlimentosEvitados(originales);
+  if (originales.length > 10 || originales.some((item) => item.length > 60)) {
+    return { error: "Podés agregar hasta 10 alimentos, de 60 caracteres cada uno." };
+  }
+  if (alimentos.some((alimento) => (
+    CONDICIONES_MEDICAS.some((condicion) => contiene(alimento, condicion))
+    || /(?:itis|osis|emia|ismo)$/.test(alimento)
+  ))) {
+    return { error: "Agregá alimentos específicos, no condiciones médicas." };
+  }
+  return { alimentos };
 }
 
 // ¿Aparece la palabra (o su plural) como palabra entera dentro del texto?
@@ -136,8 +171,13 @@ export function combinarRestricciones(perfil, comensales = []) {
   for (const persona of [perfil, ...comensales]) {
     for (const id of persona?.restricciones ?? []) ids.add(id);
     for (const id of persona?.alergias ?? []) ids.add(id);
+    for (const alimento of normalizarAlimentosEvitados(persona?.alimentosEvitados)) {
+      ids.add(`${PREFIJO_ALIMENTO}${alimento}`);
+    }
   }
-  return [...ids].filter((id) => TODAS.some((o) => o.id === id));
+  return [...ids].filter(
+    (id) => id.startsWith(PREFIJO_ALIMENTO) || TODAS.some((o) => o.id === id),
+  );
 }
 
 // Revisa una receta contra una lista de ids del catálogo.
@@ -145,6 +185,9 @@ export function combinarRestricciones(perfil, comensales = []) {
 // Devuelve { apta, prohibidos: [{ ingrediente, motivo }], avisos: [{ ingrediente, texto }] }.
 export function revisarReceta(receta, ids) {
   const opciones = TODAS.filter((o) => ids.includes(o.id));
+  const alimentosEvitados = ids
+    .filter((id) => id.startsWith(PREFIJO_ALIMENTO))
+    .map((id) => id.slice(PREFIJO_ALIMENTO.length));
   const prohibidos = [];
   const avisos = [];
 
@@ -160,6 +203,10 @@ export function revisarReceta(receta, ids) {
       if (palabra) {
         prohibidos.push({ ingrediente: ingrediente.nombre, motivo: opcion.nombre });
       }
+    }
+    const alimento = alimentosEvitados.find((evitado) => contiene(original, evitado));
+    if (alimento) {
+      prohibidos.push({ ingrediente: ingrediente.nombre, motivo: `Alimento evitado: ${alimento}` });
     }
 
     if (ids.includes("sin-gluten") && ESCONDEN_GLUTEN.some((p) => contiene(original, p))) {

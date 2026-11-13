@@ -35,6 +35,7 @@ async function Lista() {
     nombre: doc.data().nombre ?? "",
     restricciones: doc.data().restricciones ?? [],
     alergias: doc.data().alergias ?? [],
+    alimentosEvitados: doc.data().alimentosEvitados ?? [],
   }));
 
   return <ListaComensales comensales={comensales} />;

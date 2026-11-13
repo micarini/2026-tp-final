@@ -6,8 +6,8 @@ import IlustracionPortada from "@/components/ilustracion-portada";
 // Desktop (lg): ilustración a la izquierda y formulario a la derecha.
 export default function AuthMarco({ titulo, bajada, children }) {
   return (
-    <main className="flex min-h-svh flex-col lg:grid lg:grid-cols-[5fr_7fr]">
-      <div className="relative h-36 overflow-hidden bg-hoja-900 lg:h-auto">
+    <main className="flex min-h-svh flex-col lg:grid lg:grid-cols-2">
+      <div className="relative h-48 overflow-hidden bg-hoja-900 lg:h-auto">
         <IlustracionPortada className="absolute inset-0 size-full" />
         <Logo claro className="absolute top-6 left-6" />
       </div>

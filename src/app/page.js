@@ -19,7 +19,10 @@ export default function Home() {
       </div>
 
       <div className="flex flex-1 flex-col justify-end px-6 pt-8 pb-10 sm:px-10 lg:justify-between lg:px-28 lg:py-24">
-        <Logo claro className="hidden self-start lg:block" />
+        {/* El Logo ya es inline-flex, por eso el hidden va en un contenedor */}
+        <div className="hidden self-start lg:block">
+          <Logo claro />
+        </div>
 
         <div className="flex flex-col gap-8 lg:gap-10">
           <div className="flex flex-col gap-3 animate-subir lg:gap-6">

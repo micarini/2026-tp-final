@@ -76,6 +76,7 @@ function revisarSugerencias(recetas, restricciones, comensalIds) {
       return {
         ...receta,
         comensalIds,
+        restriccionesAplicadas: restricciones,
         apta: control.apta,
         prohibidos: control.prohibidos,
         advertencias: [...new Set([...receta.advertencias, ...control.avisos.map((aviso) => aviso.texto)])],

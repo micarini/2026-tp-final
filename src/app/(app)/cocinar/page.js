@@ -14,8 +14,8 @@ export const metadata = {
 // (con cacheComponents, leer cookies fuera de un Suspense marca la ruta como bloqueante).
 export default function CocinarPage() {
   return (
-    <div className="flex flex-col gap-8 lg:grid lg:grid-cols-[440px_1fr] lg:items-start lg:gap-12">
-      <div className="flex flex-col gap-8 lg:col-span-2">
+    <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-8">
         <Encabezado titulo="¿Qué cocino hoy?" bajada="Contanos qué tenés y te decimos qué cocinar." />
         <Suspense fallback={<Cargando />}>
           <Cajon />

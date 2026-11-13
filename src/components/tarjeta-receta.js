@@ -1,11 +1,15 @@
 import Link from "next/link";
+import Image from "next/image";
+import { fotoRespaldo } from "@/lib/respaldo";
 import GuardarReceta from "@/components/guardar-receta";
 
 export default function TarjetaReceta({ receta, guardable = false }) {
   return (
     <article className="flex flex-col gap-4 rounded-tarjeta bg-blanco p-5 shadow-tarjeta sm:p-6">
-      {receta.imagen?.url && (
+      {receta.imagen?.url ? (
         <img src={receta.imagen.url} alt="" className="aspect-[16/9] w-full rounded-campo object-cover" />
+      ) : (
+        <Image src={fotoRespaldo(receta.titulo)} alt="" width={1280} height={720} className="aspect-[16/9] w-full rounded-campo object-cover" />
       )}
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-start justify-between gap-3">

@@ -21,6 +21,14 @@ export const metadata = {
   },
   description:
     "Tu recetario personal: cociná con lo que tenés en casa, respetando las restricciones de cada comensal.",
+  openGraph: {
+    title: "Tuppi",
+    description: "Cociná con lo que tenés en casa, respetando lo que no come cada persona.",
+    images: [{ url: "/og.png", width: 1200, height: 630 }],
+    locale: "es_AR",
+    type: "website",
+  },
+  twitter: { card: "summary_large_image", images: ["/og.png"] },
   icons: {
     icon: [
       { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },

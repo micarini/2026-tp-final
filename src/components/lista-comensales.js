@@ -20,6 +20,7 @@ function FormComensal({ comensal, alTerminar }) {
   const [nombre, setNombre] = useState(comensal?.nombre ?? "");
   const [restricciones, setRestricciones] = useState(comensal?.restricciones ?? []);
   const [alergias, setAlergias] = useState(comensal?.alergias ?? []);
+  const [alimentosEvitados, setAlimentosEvitados] = useState((comensal?.alimentosEvitados ?? []).join(", "));
 
   // Cuando la Server Action responde ok, cerramos el formulario
   useEffect(() => {
@@ -44,7 +45,7 @@ function FormComensal({ comensal, alTerminar }) {
       />
       <GrupoOpciones
         titulo="Restricciones"
-        ayuda="Lo que no come por elección o por salud."
+        ayuda="Lo que no come por elección."
         name="restricciones"
         opciones={RESTRICCIONES}
         marcadas={restricciones}
@@ -57,6 +58,15 @@ function FormComensal({ comensal, alTerminar }) {
         opciones={ALERGIAS}
         marcadas={alergias}
         setMarcadas={setAlergias}
+      />
+      <Campo
+        label="Otros alimentos que evita"
+        name="alimentosEvitados"
+        value={alimentosEvitados}
+        onChange={(e) => setAlimentosEvitados(e.target.value)}
+        placeholder="Ej.: palta, cilantro, cebolla cruda"
+        maxLength={650}
+        mensaje="Separalos con comas. Solo alimentos específicos, no condiciones médicas."
       />
       {estado?.error && (
         <p role="alert" className="text-sm text-tomate">
@@ -80,6 +90,7 @@ function TarjetaComensal({ comensal, alEditar }) {
   const [error, setError] = useState(null);
   const [borrando, startTransition] = useTransition();
   const etiquetas = [...comensal.restricciones, ...comensal.alergias];
+  const tieneAlimentosEvitados = comensal.alimentosEvitados?.length > 0;
 
   function borrar() {
     startTransition(async () => {
@@ -92,7 +103,7 @@ function TarjetaComensal({ comensal, alEditar }) {
     <li className="flex flex-col gap-4 rounded-tarjeta bg-blanco p-5 shadow-tarjeta animate-subir sm:p-6">
       <div className="flex flex-col gap-3">
         <h2 className="font-titulo text-xl font-semibold">{comensal.nombre}</h2>
-        {etiquetas.length === 0 ? (
+        {etiquetas.length === 0 && !tieneAlimentosEvitados ? (
           <p className="text-sm text-tinta-2">Come de todo.</p>
         ) : (
           <ul className="flex flex-wrap gap-2" aria-label={`Lo que no come ${comensal.nombre}`}>
@@ -102,6 +113,11 @@ function TarjetaComensal({ comensal, alEditar }) {
               </li>
             ))}
           </ul>
+        )}
+        {comensal.alimentosEvitados?.length > 0 && (
+          <p className="text-sm text-tinta-2">
+            También evita: {comensal.alimentosEvitados.join(", ")}
+          </p>
         )}
       </div>
 
@@ -176,6 +192,7 @@ export default function ListaComensales({ comensales }) {
 
       {comensales.length === 0 && editando !== "nuevo" ? (
         <EstadoVacio
+          imagen="/vacio-comensales.png"
           titulo="Todavía no agregaste a nadie"
           texto="Sumá a quien cocina con vos seguido y Tuppi va a respetar lo que no come."
         >

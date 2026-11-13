@@ -15,6 +15,7 @@ export default function FormPerfil({ perfil, bienvenida }) {
   const [nombre, setNombre] = useState(perfil.nombre ?? "");
   const [restricciones, setRestricciones] = useState(perfil.restricciones ?? []);
   const [alergias, setAlergias] = useState(perfil.alergias ?? []);
+  const [alimentosEvitados, setAlimentosEvitados] = useState((perfil.alimentosEvitados ?? []).join(", "));
   const [porciones, setPorciones] = useState(perfil.porcionesHabituales ?? 1);
 
   const ninguna = restricciones.length === 0 && alergias.length === 0;
@@ -40,8 +41,17 @@ export default function FormPerfil({ perfil, bienvenida }) {
           marcadas={alergias}
           setMarcadas={setAlergias}
         />
+        <Campo
+          label="Otros alimentos que evitás"
+          name="alimentosEvitados"
+          value={alimentosEvitados}
+          onChange={(e) => setAlimentosEvitados(e.target.value)}
+          placeholder="Ej.: palta, cilantro, cebolla cruda"
+          maxLength={650}
+          mensaje="Separalos con comas. No hace falta indicar condiciones médicas."
+        />
         <p aria-live="polite" className="text-sm text-tinta-2">
-          {ninguna ? "No marcaste nada: como de todo." : null}
+          {ninguna && !alimentosEvitados.trim() ? "No marcaste nada: como de todo." : null}
         </p>
       </section>
 

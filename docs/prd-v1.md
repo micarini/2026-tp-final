@@ -27,7 +27,7 @@ Las personas que viven solas cocinan en porciones chicas, con lo que quedó en l
 - Las rutas privadas redirigen a `/login` si no hay sesión.
 
 **H2 — Perfil.** Quiero indicar mis restricciones para no tener que repetirlas.
-- Se pueden elegir restricciones de un catálogo (sin gluten, vegano, vegetariano, sin lactosa) y alergias de una lista cerrada (maní, frutos secos, huevo, pescado, mariscos, soja), o ninguna. No hay texto libre: cada opción del catálogo tiene su lista de ingredientes prohibidos en el código, para que el control sea confiable.
+- Se pueden elegir restricciones de un catálogo (sin gluten, vegano, vegetariano, sin lactosa) y alergias de una lista cerrada (maní, frutos secos, huevo, pescado, mariscos, soja), o ninguna. También se pueden agregar hasta 10 alimentos específicos a evitar, separados por comas (por ejemplo, cilantro o palta). No se cargan condiciones médicas ni se hacen recomendaciones de salud. Las opciones del catálogo tienen su lista de ingredientes prohibidos en el código y los alimentos específicos se controlan literalmente.
 - Se puede definir la cantidad de porciones habitual (1 por defecto).
 
 **H3 — Comensales.** Quiero guardar a las personas con las que cocino seguido, con sus restricciones.
@@ -81,10 +81,10 @@ Más: landing pública, diseño responsive, estados de carga, error y vacío, me
 
 ```
 users/{uid}
-  nombre, restricciones[], alergias[], porcionesHabituales, creadoEn
+  nombre, restricciones[], alergias[], alimentosEvitados[], porcionesHabituales, creadoEn
 
 users/{uid}/comensales/{comensalId}
-  nombre, restricciones[], alergias[], creadoEn
+  nombre, restricciones[], alergias[], alimentosEvitados[], creadoEn
 
 users/{uid}/recetas/{recetaId}
   titulo, porQueSirve, porciones, tiempoMin
