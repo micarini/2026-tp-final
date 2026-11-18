@@ -159,3 +159,16 @@ select {
   background-size: 1.125rem;
   padding-right: 2.75rem;
 }
+
+/* Las barras de macros crecen desde la izquierda al aparecer. */
+@keyframes crecer {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.crecer {
+  transform-origin: left;
+  animation: crecer 700ms var(--ease-resorte, ease-out) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .crecer { animation: none; }
+}

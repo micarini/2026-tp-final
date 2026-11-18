@@ -6,6 +6,9 @@ import { combinarRestricciones, revisarReceta } from "@/lib/restricciones";
 import { traducirIngredientes, adaptarReceta, proponerRecetas } from "@/lib/ai";
 import { buscarPorIngrediente, intersectar, obtenerReceta } from "@/lib/themealdb";
 import { buscarFoto } from "@/lib/unsplash";
+import { obtenerClaveGroq } from "@/lib/claves";
+import { consumirPedido } from "@/lib/uso-ia";
+import { calcularMacros } from "@/lib/macros";
 
 const ID_VALIDO = /^[A-Za-z0-9_-]{1,64}$/;
 const TRADUCCIONES_BASICAS = {
@@ -37,6 +40,7 @@ function errorDeServicio(error) {
   const mensaje = error?.message ?? "";
   if (mensaje.includes("límite de pedidos")) return mensaje;
   if (mensaje.includes("minuto")) return mensaje;
+  if (mensaje.includes("clave de Groq")) return "La clave de Groq que cargaste no es válida. Revisala en tu perfil.";
   if (mensaje.includes("Groq respondió")) return "Groq rechazó la consulta. Revisá que la clave y el modelo estén habilitados.";
   if (mensaje.includes("TheMealDB respondió")) return "TheMealDB no respondió. Probá de nuevo en un momento.";
   if (mensaje.includes("Unsplash respondió")) return "Unsplash no respondió. Probá de nuevo en un momento.";
@@ -162,13 +166,24 @@ export async function sugerirRecetas(datos) {
     }
 
     const restricciones = combinarRestricciones(perfil, elegidos);
+
+    // Con clave propia no hay límite diario. Con la de la app, cada búsqueda cuenta UN pedido (no uno por llamada a Groq).
+    let apiKey = await obtenerClaveGroq(user.uid);
+    if (!apiKey) {
+      await consumirPedido(user.uid);
+      apiKey = process.env.GROQ_API_KEY ?? null;
+    }
+
     let traducidos;
-    let groqDisponible = true;
+    let groqDisponible = Boolean(apiKey);
+    let usoRespaldo = !groqDisponible;
     try {
-      traducidos = await traducirIngredientes(user.uid, ingredientes);
+      if (!groqDisponible) throw Object.assign(new Error("sin clave"), { status: 429 });
+      traducidos = await traducirIngredientes(apiKey, ingredientes);
     } catch (error) {
       if (!groqLimitado(error)) throw error;
       groqDisponible = false;
+      usoRespaldo = true;
       traducidos = traducirSinIA(ingredientes);
     }
     const consultas = traducidos
@@ -200,7 +215,7 @@ export async function sugerirRecetas(datos) {
         }
         try {
           recetas.push({
-              ...(await adaptarReceta(user.uid, detalle, contexto)),
+              ...(await adaptarReceta(apiKey, detalle, contexto)),
               origen: "themealdb",
               themealdbId: detalle.id,
               imagen: detalle.imagen
@@ -215,6 +230,7 @@ export async function sugerirRecetas(datos) {
         } catch (error) {
           if (!groqLimitado(error)) throw error;
           groqDisponible = false;
+          usoRespaldo = true;
           recetas.push(recetaSinIA(detalle, ingredientes, comensalIds));
         }
       }
@@ -222,7 +238,7 @@ export async function sugerirRecetas(datos) {
       if (!groqDisponible) {
         recetas = [];
       } else {
-        const propuestas = await proponerRecetas(user.uid, contexto);
+        const propuestas = await proponerRecetas(apiKey, contexto);
         recetas = await Promise.all(propuestas.map(async (propuesta) => ({
           ...normalizarReceta(propuesta, "ia", await fotoOpcional(propuesta.titulo)),
           comensalIds,
@@ -233,7 +249,7 @@ export async function sugerirRecetas(datos) {
     let revisadas = revisarSugerencias(recetas, restricciones, comensalIds);
 
     if (groqDisponible && revisadas.length < 2 && coincidencias.length > 0) {
-      const complementarias = await proponerRecetas(user.uid, contexto);
+      const complementarias = await proponerRecetas(apiKey, contexto);
       const normalizadas = await Promise.all(complementarias.map(async (propuesta) => ({
         ...normalizarReceta(propuesta, "ia", await fotoOpcional(propuesta.titulo)),
         comensalIds,
@@ -243,9 +259,26 @@ export async function sugerirRecetas(datos) {
     revisadas = revisadas.slice(0, 3);
 
     if (revisadas.length === 0) {
-      return { error: "No encontramos una receta que respete todas las restricciones elegidas." };
+      return {
+        error: usoRespaldo
+          ? "La IA no estaba disponible y no encontramos recetas con esos ingredientes. Probá en un minuto o con otros ingredientes."
+          : "No encontramos una receta que respete todas las restricciones elegidas.",
+      };
     }
-    return { ok: true, recetas: revisadas };
+
+    // Macros aproximados por porción (USDA). Si algo falla, la receta se muestra igual, sin macros.
+    const conMacros = await Promise.all(revisadas.map(async (receta) => ({
+      ...receta,
+      macrosPorPorcion: await calcularMacros(receta).catch(() => null),
+    })));
+
+    return {
+      ok: true,
+      recetas: conMacros,
+      aviso: usoRespaldo
+        ? "La IA estaba limitada, así que te mostramos recetas de TheMealDB sin adaptar. Revisá los ingredientes."
+        : null,
+    };
   } catch (error) {
     console.error("sugerirRecetas falló:", error?.code ?? error?.message);
     return { error: errorDeServicio(error) };

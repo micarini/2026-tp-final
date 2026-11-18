@@ -9,6 +9,7 @@ import BorrarReceta from "@/components/borrar-receta";
 import Image from "next/image";
 import { fotoRespaldo } from "@/lib/respaldo";
 import { IconoCheck } from "@/components/iconos";
+import Macros from "@/components/macros";
 
 export const metadata = {
   title: "Detalle de receta",
@@ -45,6 +46,7 @@ async function Detalle({ params }) {
     origen: datos.origen ?? "ia",
     themealdbId: datos.themealdbId ?? null,
     comensalIds: datos.comensalIds ?? [],
+    macrosPorPorcion: datos.macrosPorPorcion ?? null,
   };
 
   const plural = receta.porciones === 1 ? "porción" : "porciones";
@@ -81,6 +83,8 @@ async function Detalle({ params }) {
         </aside>
 
         <div className="flex flex-col gap-8">
+          <Macros macros={receta.macrosPorPorcion} />
+
           <section className="flex flex-col gap-3">
             <h2 className="font-titulo text-xl font-semibold">Ingredientes</h2>
             <ul className="grid gap-x-6 gap-y-2 rounded-campo bg-hoja-100 p-4 text-sm sm:grid-cols-2">

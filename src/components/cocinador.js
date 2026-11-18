@@ -9,6 +9,7 @@ import Image from "next/image";
 import { fotoRespaldo } from "@/lib/respaldo";
 import { RESTRICCIONES, ALERGIAS } from "@/lib/restricciones";
 import { IconoCheck, IconoMas } from "@/components/iconos";
+import Macros from "@/components/macros";
 
 const MAXIMO = 10;
 
@@ -201,6 +202,8 @@ function TarjetaReceta({ receta, compacta = false, onAbrir, onVolver }) {
       </div>
 
       <div className="flex flex-col gap-6">
+        <Macros macros={receta.macrosPorPorcion} />
+
         <section className="flex flex-col gap-3">
           <h3 className="font-titulo text-xl font-semibold">Los ingredientes</h3>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -350,6 +353,9 @@ export default function Cocinador({ comensales }) {
 
       {resultado?.recetas?.length > 0 && (
         <section className="flex flex-col gap-5" aria-live="polite">
+          {resultado.aviso && (
+            <p role="status" className="rounded-campo bg-zanahoria/20 p-3 text-sm text-tinta">{resultado.aviso}</p>
+          )}
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="font-titulo text-2xl font-semibold">Ideas para cocinar</h2>

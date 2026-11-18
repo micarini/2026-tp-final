@@ -1,7 +1,5 @@
 import "server-only";
 
-import { consumirPedido } from "@/lib/uso-ia";
-
 const API_URL = "https://api.groq.com/openai/v1/chat/completions";
 const MODELO = process.env.GROQ_MODEL || "qwen/qwen3.8-27b";
 
@@ -48,16 +46,16 @@ function validarListaRecetas(valor) {
     && valor.recetas.every(validarReceta);
 }
 
-async function pedirUnaVez({ uid, sistema, usuario, validar }) {
-  await consumirPedido(uid);
-  if (!process.env.GROQ_API_KEY) {
+// La clave la elige quien llama: la propia del usuario o la de la app (el límite diario se cuenta afuera, una vez por búsqueda).
+async function pedirUnaVez({ apiKey, sistema, usuario, validar }) {
+  if (!apiKey) {
     throw new Error("Falta configurar GROQ_API_KEY en las variables del servidor.");
   }
 
   const respuesta = await fetch(API_URL, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
@@ -75,6 +73,11 @@ async function pedirUnaVez({ uid, sistema, usuario, validar }) {
   if (respuesta.status === 429) {
     const error = new Error("Groq está momentáneamente limitado. Probá en un minuto.");
     error.status = 429;
+    throw error;
+  }
+  if (respuesta.status === 401) {
+    const error = new Error("La clave de Groq no es válida.");
+    error.status = 401;
     throw error;
   }
   if (!respuesta.ok) {
@@ -98,18 +101,18 @@ async function pedirUnaVez({ uid, sistema, usuario, validar }) {
   }
 }
 
-export async function pedirJSON({ uid, sistema, usuario, validar = validarObjeto }) {
-  if (!uid || !sistema || !usuario) throw new Error("Faltan datos para pedirle algo a Groq.");
+export async function pedirJSON({ apiKey, sistema, usuario, validar = validarObjeto }) {
+  if (!apiKey || !sistema || !usuario) throw new Error("Faltan datos para pedirle algo a Groq.");
 
   try {
-    return await pedirUnaVez({ uid, sistema, usuario, validar });
+    return await pedirUnaVez({ apiKey, sistema, usuario, validar });
   } catch (error) {
     if (!error.message.includes("formato inválido") && !error.message.includes("formato esperado")) {
       throw error;
     }
     try {
       return await pedirUnaVez({
-        uid,
+        apiKey,
         sistema: `${sistema}\nDevolvé únicamente un objeto JSON válido, sin markdown.`,
         usuario,
         validar,
@@ -129,9 +132,9 @@ ingredientes (array de objetos con nombre, cantidad, unidad, gramos, nombreEn, a
 pasos (array de strings), reemplazos (array de strings), advertencias (array de strings).
 `;
 
-export async function traducirIngredientes(uid, lista) {
+export async function traducirIngredientes(apiKey, lista) {
   const resultado = await pedirJSON({
-    uid,
+    apiKey,
     sistema: `Traducí ingredientes del español al inglés para buscar recetas. ${JSON.stringify({
       ingredientes: [{ nombre: "pollo", nombreEn: "chicken" }],
     })}`,
@@ -141,9 +144,9 @@ export async function traducirIngredientes(uid, lista) {
   return resultado.ingredientes ?? [];
 }
 
-export async function adaptarReceta(uid, receta, contexto = {}) {
+export async function adaptarReceta(apiKey, receta, contexto = {}) {
   return pedirJSON({
-    uid,
+    apiKey,
     sistema: `Sos una asistente de cocina. Adaptá recetas con claridad y sin inventar restricciones.
 ${FORMATO_RECETA}
 Normalizá cada ingrediente en nombreEn (inglés) y gramos cuando sea posible.
@@ -153,9 +156,9 @@ Marcá aComprar según los ingredientes que la persona tiene. Las restricciones 
   });
 }
 
-export async function proponerReceta(uid, contexto) {
+export async function proponerReceta(apiKey, contexto) {
   return pedirJSON({
-    uid,
+    apiKey,
     sistema: `Sos una asistente de cocina. Proponé una receta realista usando los ingredientes disponibles.
 ${FORMATO_RECETA}
 Respetá el contexto recibido y no agregues ingredientes prohibidos.`,
@@ -164,9 +167,9 @@ Respetá el contexto recibido y no agregues ingredientes prohibidos.`,
   });
 }
 
-export async function proponerRecetas(uid, contexto) {
+export async function proponerRecetas(apiKey, contexto) {
   const resultado = await pedirJSON({
-    uid,
+    apiKey,
     sistema: `Sos una asistente de cocina. Proponé entre 2 y 3 recetas distintas y realistas usando los ingredientes disponibles.
 Devolvé un objeto con la clave recetas, que debe ser un array de 2 o 3 objetos.
 Cada objeto debe tener estas claves:

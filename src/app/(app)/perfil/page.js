@@ -6,6 +6,8 @@ import Encabezado from "@/components/encabezado";
 import Cargando from "@/components/cargando";
 import Boton from "@/components/ui/boton";
 import FormPerfil from "@/components/form-perfil";
+import ClaveGroq from "@/components/clave-groq";
+import { estadoClaveGroq } from "@/lib/claves";
 
 export const metadata = {
   title: "Perfil",
@@ -28,7 +30,11 @@ async function Contenido({ searchParams }) {
   const user = await requireUser();
   const { bienvenida } = await searchParams;
   const esBienvenida = bienvenida === "1";
-  const datos = (await db().doc(`users/${user.uid}`).get()).data() ?? {};
+  const [documento, clave] = await Promise.all([
+    db().doc(`users/${user.uid}`).get(),
+    estadoClaveGroq(user.uid),
+  ]);
+  const datos = documento.data() ?? {};
 
   // Solo pasamos al cliente lo que el formulario necesita (no el documento entero).
   const perfil = {
@@ -50,6 +56,7 @@ async function Contenido({ searchParams }) {
         }
       />
       <FormPerfil perfil={perfil} bienvenida={esBienvenida} />
+      {!esBienvenida && <ClaveGroq cargada={clave.cargada} ultimos4={clave.ultimos4} />}
       {!esBienvenida && (
         <form action={logout}>
           <Boton type="submit" variante="texto" className="px-0">

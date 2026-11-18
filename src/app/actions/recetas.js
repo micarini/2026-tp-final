@@ -48,6 +48,19 @@ function recetaValida(receta) {
     && ORIGENES.includes(receta.origen);
 }
 
+// Macros: solo números razonables; si algo no cierra se guardan como null (la receta se guarda igual).
+function macrosLimpios(valor) {
+  if (!valor || typeof valor !== "object") return null;
+  const campos = ["kcal", "proteinas", "carbohidratos", "grasas"];
+  const limpio = {};
+  for (const campo of campos) {
+    const numero = Number(valor[campo]);
+    if (!Number.isFinite(numero) || numero < 0 || numero > 10000) return null;
+    limpio[campo] = numero;
+  }
+  return { ...limpio, parcial: Boolean(valor.parcial) };
+}
+
 function comensalesValidos(valor) {
   return Array.isArray(valor)
     && valor.every((id) => typeof id === "string" && ID_VALIDO.test(id));
@@ -90,6 +103,7 @@ function recetaLimpia(receta) {
         link: texto(receta.imagen.link, 1000),
       }
       : null,
+    macrosPorPorcion: macrosLimpios(receta.macrosPorPorcion),
     origen: receta.origen,
     themealdbId: receta.themealdbId ? texto(receta.themealdbId, 40) : null,
     comensalIds: Array.isArray(receta.comensalIds) ? receta.comensalIds.filter((id) => ID_VALIDO.test(id)) : [],
@@ -170,6 +184,8 @@ export async function editarReceta(id, receta) {
       origen: original.origen,
       themealdbId: original.themealdbId ?? null,
       imagen: original.imagen ?? null,
+      // Los macros se calcularon con los ingredientes originales: no se editan a mano.
+      macrosPorPorcion: original.macrosPorPorcion ?? null,
       restriccionesAplicadas,
       advertencias: [...new Set([...limpia.advertencias, ...control.avisos.map((aviso) => aviso.texto)])],
       actualizadoEn: FieldValue.serverTimestamp(),
