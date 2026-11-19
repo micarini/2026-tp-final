@@ -39,7 +39,7 @@ Las personas que viven solas cocinan en porciones chicas, con lo que quedó en l
 - Ingreso de 1 a 10 ingredientes; puedo indicar ingredientes que no consigo.
 - Recibo 2 o 3 recetas con: nombre, por qué sirve, ingredientes (marcando cuáles tengo y cuáles hay que comprar), pasos, tiempo, porciones, reemplazos y foto.
 - Origen: se buscan coincidencias en TheMealDB (una consulta por ingrediente, intersección en el código) y Groq las traduce y adapta. Si no hay coincidencias, Groq propone una receta propia con foto de Unsplash (con crédito del fotógrafo).
-- Máximo 20 pedidos a la IA por usuario por día (límite propio, aparte de los límites del plan gratis de Groq, que son para toda la app).
+- Máximo 30 pedidos a la IA por usuario por día (límite propio, aparte de los límites del plan gratis de Groq, que son para toda la app).
 - El código revisa cada receta contra las restricciones combinadas: si un ingrediente está prohibido, la receta se descarta o se muestra con una advertencia visible. Los productos que suelen tener gluten escondido (salsa de soja, caldos, rebozadores) se marcan con "buscá una que diga sin gluten".
 
 **H5 — Recetario.** Quiero guardar las recetas que me gustan y encontrarlas después.
@@ -101,7 +101,7 @@ users/{uid}/recetas/{recetaId}
   creadoEn, actualizadoEn
 
 users/{uid}/usoIA/{AAAA-MM-DD}
-  pedidos                  // máximo 20 por día
+  pedidos                  // máximo 30 por día
 ```
 
 - **Relaciones:** un usuario tiene muchos comensales y muchas recetas; una receta referencia 0..n comensales.
@@ -131,7 +131,7 @@ users/{uid}/usoIA/{AAAA-MM-DD}
 - Login: email/contraseña + Google.
 - Alergias y restricciones solo de una lista cerrada.
 - Fotos de respaldo: Unsplash, por calidad y estética.
-- Límite propio de 20 pedidos a la IA por usuario por día.
+- Límite propio de 30 pedidos a la IA por usuario por día.
 - Importar recetas (H7) entra en v1; el dashboard de macros (H8), si sobra tiempo.
 
 ## 8. Preguntas abiertas

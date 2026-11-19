@@ -40,6 +40,8 @@ function aRecetaTuppi(detalle) {
     reemplazos: [],
     advertencias: [],
     sinAdaptar: true,
+    // En Descubrir no sabemos qué tenés en casa: los ingredientes se muestran como lista, sin "Tenés" ni "Te falta".
+    sinContexto: true,
     origen: "themealdb",
     themealdbId: detalle.id,
     imagen: detalle.imagen
@@ -68,6 +70,26 @@ export async function recetasDeCategoria(categoria, restricciones) {
     .filter(Boolean)
     .map((detalle) => revisar(aRecetaTuppi(detalle), restricciones))
     .filter(Boolean);
+}
+
+// "Para hoy": 3 categorías distintas que rotan con el día, hasta 3 platos de cada una. Así no son todos del mismo tipo.
+export async function recetasDeHoy(restricciones, dia) {
+  const categorias = [0, 3, 6].map((salto) => CATEGORIAS[(dia + salto) % CATEGORIAS.length].id);
+  const grupos = await Promise.all(
+    categorias.map(async (categoria, indice) => {
+      const lista = await listarPorCategoria(categoria);
+      if (lista.length === 0) return [];
+      const inicio = (dia * 3 + indice) % lista.length;
+      const elegidos = [0, 1, 2, 3].map((paso) => lista[(inicio + paso) % lista.length]);
+      const detalles = await Promise.all(elegidos.map((plato) => obtenerRecetaCacheada(plato.id).catch(() => null)));
+      return detalles
+        .filter(Boolean)
+        .map((detalle) => revisar(aRecetaTuppi(detalle), restricciones))
+        .filter(Boolean)
+        .slice(0, 3);
+    }),
+  );
+  return grupos.flat();
 }
 
 // La receta del día: la misma para todos durante el día (la categoría y el plato salen de la fecha).

@@ -18,7 +18,7 @@ export default function ClaveGroq({ cargada, ultimos4 }) {
       <div className="flex flex-col gap-2">
         <h2 className="font-titulo text-xl font-semibold">Buscá sin límite</h2>
         <p className="text-tinta-2">
-          Sin clave propia podés hacer 20 búsquedas por día. Con tu clave de Groq, las que quieras: la consulta se hace con tu cuenta.
+          Sin clave propia tenés 30 pedidos de IA por día (buscar, ajustar, preguntar, importar). Con tu clave de Groq, las que quieras: la consulta se hace con tu cuenta.
         </p>
       </div>
 

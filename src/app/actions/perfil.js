@@ -73,3 +73,20 @@ export async function elegirAvatar(id) {
   revalidatePath("/perfil");
   return { ok: true };
 }
+
+// Despensa: lo que casi siempre tenés en casa. Se usa para no mostrarlo como "te falta" y para sumarlo de un toque al buscar.
+export async function guardarDespensa(lista) {
+  const user = await requireUser();
+  if (!Array.isArray(lista) || lista.length > 30) return { error: "Podés guardar hasta 30 ingredientes." };
+  const limpia = [...new Set(lista.map((item) => String(item).trim().toLowerCase()).filter(Boolean))];
+  if (limpia.some((item) => item.length > 40)) return { error: "Un ingrediente es demasiado largo." };
+  try {
+    await db().doc(`users/${user.uid}`).set({ despensa: limpia }, { merge: true });
+  } catch (error) {
+    console.error("guardarDespensa falló:", error?.code ?? error?.message);
+    return { error: "No pudimos guardar la despensa. Probá de nuevo." };
+  }
+  revalidatePath("/perfil");
+  revalidatePath("/cocinar");
+  return { ok: true };
+}

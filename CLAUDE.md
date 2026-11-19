@@ -49,7 +49,7 @@ La fuente de verdad del producto es `docs/prd-v1.md`. Leelo antes de cualquier f
 - Nunca guardes ni loguees contraseñas: las maneja solo Firebase Auth.
 - Toda lectura y escritura de datos de usuario va bajo `users/{uid}/**` y se valida en el servidor y en las reglas de Firestore. Un usuario nunca puede ver ni tocar datos de otro.
 - El control de restricciones y alergias lo hace el código con las listas del catálogo, no solo la IA. No lo saques ni lo debilites.
-- Respetá el límite de 20 pedidos a la IA por usuario por día.
+- Respetá el límite de 30 pedidos a la IA por usuario por día (constante `LIMITE_DIARIO` en `src/lib/uso-ia.js`; sin límite con clave propia de Groq).
 - Preguntá antes de: tocar auth o las reglas de Firestore, agregar una dependencia nueva, cambiar el modelo de datos del PRD o actualizar Next o Tailwind.
 - Todo el código tiene que poder explicarse en la defensa: preferí soluciones simples y legibles antes que ingeniosas.
 - No hagas commits ni push sin que te lo pidan.

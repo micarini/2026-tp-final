@@ -50,6 +50,10 @@ export const RESTRICCIONES = [
     excepciones: [
       "harina de arroz", "harina de maiz", "harina de garbanzo", "fideos de arroz", "pasta de mani",
       "pasta de tomate", "rice flour", "corn flour", "chickpea flour", "rice noodles", "tomato paste",
+      "harina de mijo", "harina de sorgo", "harina de mandioca", "harina de almendra", "harina de almendras",
+      "harina de coco", "harina de quinoa", "harina de trigo sarraceno", "harina de lentejas", "harina de tapioca",
+      "millet flour", "sorghum flour", "cassava flour", "almond flour", "coconut flour", "buckwheat flour",
+      "quinoa flour", "tapioca flour", "gluten free flour", "gluten-free flour", "gluten free bread", "gluten free pasta",
     ],
   },
   {
@@ -194,7 +198,11 @@ export function revisarReceta(receta, ids) {
   for (const ingrediente of receta?.ingredientes ?? []) {
     const original = normalizar(`${ingrediente.nombre ?? ""} | ${ingrediente.nombreEn ?? ""}`);
 
+    // Si el ingrediente dice que es apto ("harina de mijo (sin gluten)"), no se marca como prohibido por gluten.
+    const diceSinGluten = /sin gluten|gluten.?free|sin tacc|libre de gluten/.test(original);
+
     for (const opcion of opciones) {
+      if (opcion.id === "sin-gluten" && diceSinGluten) continue;
       let texto = original;
       for (const excepcion of opcion.excepciones) {
         texto = texto.replaceAll(normalizar(excepcion), " ");

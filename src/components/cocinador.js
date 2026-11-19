@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { fotoRespaldo } from "@/lib/respaldo";
 import { traducirReceta } from "@/app/actions/traducir";
+import AsistenteReceta from "@/components/asistente-receta";
 import { RESTRICCIONES, ALERGIAS } from "@/lib/restricciones";
 import { IconoCheck, IconoMas, IconoFlecha } from "@/components/iconos";
 import Macros from "@/components/macros";
@@ -243,6 +244,7 @@ export function TarjetaReceta({ receta, compacta = false, onAbrir, onVolver, onT
           <Boton type="button" variante="secundario" onClick={onVolver}>Volver a ideas</Boton>
           {receta.sinAdaptar && onTraducida && <BotonTraducir receta={receta} onTraducida={onTraducida} />}
         </div>
+        {onTraducida && <AsistenteReceta receta={receta} onCambiada={onTraducida} />}
       </div>
 
       <div className="flex flex-col gap-6">
@@ -250,6 +252,17 @@ export function TarjetaReceta({ receta, compacta = false, onAbrir, onVolver, onT
 
         <section className="flex flex-col gap-3">
           <h3 className="font-titulo text-xl font-semibold">Los ingredientes</h3>
+          {receta.sinContexto ? (
+            // Descubrir: no sabemos qué tenés en casa, así que es una lista de ingredientes sin más
+            <ul className="grid gap-x-6 gap-y-2 rounded-campo bg-hoja-100 p-4 text-sm sm:grid-cols-2">
+              {receta.ingredientes.map((item, indice) => (
+                <li key={`${item.nombre}-${indice}`} className="flex items-start gap-2">
+                  <IconoCheck className="mt-0.5 size-4 shrink-0 text-hoja-700" />
+                  {textoIngrediente(item)}
+                </li>
+              ))}
+            </ul>
+          ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="rounded-campo bg-hoja-100 p-4">
               <h4 className="text-sm font-semibold text-hoja-900">Tenés</h4>
@@ -288,6 +301,7 @@ export function TarjetaReceta({ receta, compacta = false, onAbrir, onVolver, onT
               )}
             </div>
           </div>
+          )}
         </section>
 
         <section className="flex flex-col gap-3">
@@ -309,7 +323,7 @@ export function TarjetaReceta({ receta, compacta = false, onAbrir, onVolver, onT
   );
 }
 
-export default function Cocinador({ comensales }) {
+export default function Cocinador({ comensales, despensa = [] }) {
   const [seleccionados, setSeleccionados] = useState([]);
   const [ingredientes, setIngredientes] = useState([]);
   const [noConsigue, setNoConsigue] = useState([]);
@@ -369,6 +383,15 @@ export default function Cocinador({ comensales }) {
           seleccionados={seleccionados}
           setSeleccionados={setSeleccionados}
         />
+        {despensa.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setIngredientes([...new Set([...ingredientes, ...despensa])].slice(0, MAXIMO))}
+            className="self-start text-sm font-medium text-hoja-700 underline underline-offset-4"
+          >
+            Sumar mi despensa ({despensa.length})
+          </button>
+        )}
         <ListaIngredientes
           titulo="¿Qué hay en tu heladera?"
           placeholder="Por ejemplo, pollo"
@@ -394,7 +417,22 @@ export default function Cocinador({ comensales }) {
         )}
       </section>
 
-      {!(resultado?.recetas?.length > 0) && (
+      {buscando && (
+        <section aria-label="Buscando recetas" aria-busy="true" className="grid gap-4 sm:grid-cols-2">
+          {[0, 1, 2, 3].map((indice) => (
+            <div key={indice} className="flex animate-pulse flex-col overflow-hidden rounded-tarjeta border border-borde bg-blanco">
+              <div className="aspect-[16/10] bg-hoja-100" />
+              <div className="flex flex-col gap-3 p-4">
+                <div className="h-5 w-3/4 rounded bg-hoja-100" />
+                <div className="h-4 w-full rounded bg-hoja-100" />
+                <div className="h-10 rounded-full bg-hoja-100" />
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {!buscando && !(resultado?.recetas?.length > 0) && (
         <section className="flex flex-col overflow-hidden rounded-tarjeta bg-blanco shadow-tarjeta">
           <Image
             src="/receta-respaldo-2.png"

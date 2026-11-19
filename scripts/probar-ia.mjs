@@ -8,15 +8,20 @@ function simular(respuestas) {
   let llamadas = 0;
   globalThis.fetch = async () => {
     const r = respuestas[Math.min(llamadas++, respuestas.length - 1)];
-    return { ok: r.status === 200, status: r.status, json: async () => r.cuerpo };
+    return { ok: r.status === 200, status: r.status, headers: { get: () => "0.01" }, json: async () => r.cuerpo };
   };
   return () => llamadas;
 }
 const contenido = (obj) => ({ choices: [{ message: { content: JSON.stringify(obj) } }] });
 
-// 1. Límite de Groq (429): el error lleva status 429, que es lo que activa el respaldo con TheMealDB.
-simular([{ status: 429 }]);
+// 1. Límite de Groq (429): se reintenta 2 veces y recién después el error lleva status 429, que activa el respaldo con TheMealDB.
+const llamadas429 = simular([{ status: 429 }]);
 await assert.rejects(() => traducirIngredientes("gsk_x", ["pollo"]), (e) => e.status === 429);
+assert.equal(llamadas429(), 3);
+
+// 1b. Si el segundo intento anda, no hay error.
+simular([{ status: 429 }, { status: 200, cuerpo: contenido({ ingredientes: [{ nombre: "pollo", nombreEn: "chicken" }] }) }]);
+assert.equal((await traducirIngredientes("gsk_x", ["pollo"])).length, 1);
 
 // 2. Clave inválida (401): mensaje propio y sin reintento.
 const llamadas401 = simular([{ status: 401 }]);

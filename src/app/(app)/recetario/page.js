@@ -16,7 +16,10 @@ export const metadata = {
 export default function RecetarioPage({ searchParams }) {
   return (
     <div className="flex flex-col gap-8">
-      <Encabezado titulo="Tu recetario" bajada="Tus recetas guardadas, ordenadas para volver a cocinar." />
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <Encabezado titulo="Tu recetario" bajada="Tus recetas guardadas, ordenadas para volver a cocinar." />
+        <Boton href="/importar" variante="secundario">Importar receta</Boton>
+      </div>
       <Suspense fallback={<Cargando />}>
         <Recetas searchParams={searchParams} />
       </Suspense>

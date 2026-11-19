@@ -5,6 +5,7 @@ import Encabezado from "@/components/encabezado";
 import Cargando from "@/components/cargando";
 import FormPerfil from "@/components/form-perfil";
 import ClaveGroq from "@/components/clave-groq";
+import DespensaPerfil from "@/components/despensa-perfil";
 import SelectorAvatar from "@/components/selector-avatar";
 import Link from "next/link";
 import { IconoEngranaje, IconoComensales } from "@/components/iconos";
@@ -83,6 +84,7 @@ async function Contenido({ searchParams }) {
         </Link>
       )}
       <FormPerfil perfil={perfil} bienvenida={esBienvenida} />
+      {!esBienvenida && <DespensaPerfil inicial={datos.despensa ?? []} />}
       {!esBienvenida && <ClaveGroq cargada={clave.cargada} ultimos4={clave.ultimos4} />}
     </>
   );

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/session";
 import { db } from "@/lib/firebase-admin";
 import { combinarRestricciones } from "@/lib/restricciones";
-import { CATEGORIAS, recetasDeCategoria, recetaDelDia, diaActual } from "@/lib/descubrir";
+import { CATEGORIAS, recetasDeCategoria, recetasDeHoy, recetaDelDia, diaActual } from "@/lib/descubrir";
 import Encabezado from "@/components/encabezado";
 import Cargando from "@/components/cargando";
 import ListaDescubrir from "@/components/lista-descubrir";
@@ -39,7 +39,7 @@ async function Contenido({ searchParams }) {
   try {
     [destacada, recetas] = await Promise.all([
       categoria ? null : recetaDelDia(restricciones, dia),
-      categoria ? recetasDeCategoria(categoria.id, restricciones) : recetasDeCategoria(CATEGORIAS[dia % CATEGORIAS.length].id, restricciones),
+      categoria ? recetasDeCategoria(categoria.id, restricciones) : recetasDeHoy(restricciones, dia),
     ]);
   } catch (error) {
     console.error("descubrir falló:", error?.message);

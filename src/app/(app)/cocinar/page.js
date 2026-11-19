@@ -4,6 +4,7 @@ import { db } from "@/lib/firebase-admin";
 import Encabezado from "@/components/encabezado";
 import Cargando from "@/components/cargando";
 import Cocinador from "@/components/cocinador";
+import Boton from "@/components/ui/boton";
 
 export const metadata = {
   title: "¿Qué cocino hoy?",
@@ -16,7 +17,10 @@ export default function CocinarPage() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-8">
-        <Encabezado titulo="¿Qué cocino hoy?" bajada="Contanos qué tenés y te decimos qué cocinar." />
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <Encabezado titulo="¿Qué cocino hoy?" bajada="Contanos qué tenés y te decimos qué cocinar." />
+          <Boton href="/grupo" variante="secundario">Cocino para muchos</Boton>
+        </div>
         <Suspense fallback={<Cargando />}>
           <Cajon />
         </Suspense>
@@ -27,10 +31,13 @@ export default function CocinarPage() {
 
 async function Cajon() {
   const user = await requireUser();
-  const snapshot = await db().collection(`users/${user.uid}/comensales`).orderBy("creadoEn").get();
+  const [snapshot, perfil] = await Promise.all([
+    db().collection(`users/${user.uid}/comensales`).orderBy("creadoEn").get(),
+    db().doc(`users/${user.uid}`).get(),
+  ]);
   const comensales = snapshot.docs.map((doc) => ({
     id: doc.id,
     nombre: doc.data().nombre ?? "",
   }));
-  return <Cocinador comensales={comensales} />;
+  return <Cocinador comensales={comensales} despensa={perfil.data()?.despensa ?? []} />;
 }

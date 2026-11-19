@@ -282,7 +282,7 @@ export async function sugerirRecetas(datos) {
       revisadas = [...revisadas, ...revisarSugerencias(normalizadas, restricciones, comensalIds)];
     }
     // Lo "a comprar" se decide acá, no la IA: si el ingrediente ya está en casa, no se repite en la lista de compras.
-    revisadas = revisadas.slice(0, 3).map((receta) => marcarDisponibles(receta, ingredientes, traducidos));
+    revisadas = revisadas.slice(0, 3).map((receta) => marcarDisponibles(receta, [...ingredientes, ...(perfil.despensa ?? [])], traducidos));
 
     if (revisadas.length === 0) {
       return {
