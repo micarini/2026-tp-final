@@ -39,6 +39,7 @@ function aRecetaTuppi(detalle) {
     pasos: pasos.length > 0 ? pasos : [detalle.instrucciones],
     reemplazos: [],
     advertencias: [],
+    sinAdaptar: true,
     origen: "themealdb",
     themealdbId: detalle.id,
     imagen: detalle.imagen

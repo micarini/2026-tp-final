@@ -6,9 +6,11 @@ import GuardarReceta from "@/components/guardar-receta";
 import Etiqueta, { COLORES_ETIQUETA } from "@/components/ui/etiqueta";
 import Boton from "@/components/ui/boton";
 import Image from "next/image";
+import Link from "next/link";
 import { fotoRespaldo } from "@/lib/respaldo";
+import { traducirReceta } from "@/app/actions/traducir";
 import { RESTRICCIONES, ALERGIAS } from "@/lib/restricciones";
-import { IconoCheck, IconoMas } from "@/components/iconos";
+import { IconoCheck, IconoMas, IconoFlecha } from "@/components/iconos";
 import Macros from "@/components/macros";
 
 const MAXIMO = 10;
@@ -54,6 +56,13 @@ function SelectorPersonas({ comensales, seleccionados, setSeleccionados }) {
             {comensal.nombre}
           </button>
         ))}
+        {/* Atajo para quien todavía no cargó a nadie: se puede hacer desde acá */}
+        <Link
+          href="/comensales"
+          className="inline-flex min-h-11 items-center rounded-full border border-dashed border-hoja-700 px-4 text-sm font-medium text-hoja-700 hover:bg-hoja-100"
+        >
+          + Agregar comensal
+        </Link>
       </div>
     </fieldset>
   );
@@ -109,6 +118,38 @@ function ListaIngredientes({ titulo, placeholder, lista, setLista, colorInicial,
   );
 }
 
+// Cosas que casi todos tienen en la despensa: no se muestran como "te falta".
+const DESPENSA = /\b(sal|pimienta|aceite|az[uú]car|harina|vinagre|agua|manteca|pizca|ajo en polvo|or[eé]gano|comino|piment[oó]n|salt|pepper|oil|sugar|water|flour|butter|vinegar)\b/i;
+
+// Botón de traducir para las recetas que vinieron en inglés. Conserva los nombres en inglés para el control de restricciones.
+function BotonTraducir({ receta, onTraducida }) {
+  const [traduciendo, startTransition] = useTransition();
+  const [error, setError] = useState(null);
+
+  function traducir() {
+    setError(null);
+    startTransition(async () => {
+      const resultado = await traducirReceta(receta);
+      if (resultado?.error) setError(resultado.error);
+      else onTraducida(resultado.receta);
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Boton type="button" variante="secundario" onClick={traducir} cargando={traduciendo} className="self-start">
+        Traducir al español
+      </Boton>
+      {error && <p role="alert" className="text-sm text-tomate">{error}</p>}
+    </div>
+  );
+}
+
+// "200 g pollo", "2 unidad huevo": la cantidad y la unidad van antes del nombre.
+function textoIngrediente(ingrediente) {
+  return [ingrediente.cantidad, ingrediente.unidad, ingrediente.nombre].filter(Boolean).join(" ");
+}
+
 // Textos de los stickers: "sin gluten", "vegano", "sin maní"... Solo los del catálogo (no los alimentos evitados).
 function nombresSticker(receta) {
   const ids = receta.restriccionesAplicadas ?? [];
@@ -148,9 +189,11 @@ function FotoReceta({ receta, clase }) {
   );
 }
 
-export function TarjetaReceta({ receta, compacta = false, onAbrir, onVolver }) {
+export function TarjetaReceta({ receta, compacta = false, onAbrir, onVolver, onTraducida }) {
   const propios = receta.ingredientes.filter((ingrediente) => !ingrediente.aComprar);
-  const comprar = receta.ingredientes.filter((ingrediente) => ingrediente.aComprar);
+  const faltantes = receta.ingredientes.filter((ingrediente) => ingrediente.aComprar);
+  const comprar = faltantes.filter((ingrediente) => !DESPENSA.test(`${ingrediente.nombre} ${ingrediente.unidad}`));
+  const despensa = faltantes.filter((ingrediente) => DESPENSA.test(`${ingrediente.nombre} ${ingrediente.unidad}`));
 
   if (compacta) {
     return (
@@ -198,6 +241,7 @@ export function TarjetaReceta({ receta, compacta = false, onAbrir, onVolver }) {
         <div className="flex flex-wrap items-center gap-3">
           <GuardarReceta receta={receta} />
           <Boton type="button" variante="secundario" onClick={onVolver}>Volver a ideas</Boton>
+          {receta.sinAdaptar && onTraducida && <BotonTraducir receta={receta} onTraducida={onTraducida} />}
         </div>
       </div>
 
@@ -213,26 +257,34 @@ export function TarjetaReceta({ receta, compacta = false, onAbrir, onVolver }) {
                 {propios.map((item, indice) => (
                   <li key={`${item.nombre}-${indice}`} className="flex items-center gap-2">
                     <IconoCheck className="size-4 shrink-0 text-hoja-700" />
-                    {item.nombre}
+                    {textoIngrediente(item)}
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="rounded-campo border border-borde p-4">
-              <h4 className="flex justify-between text-sm font-semibold text-hoja-900">
-                A comprar <span className="font-normal text-tinta-2">{comprar.length}</span>
-              </h4>
-              {comprar.length === 0 ? (
-                <p className="mt-2 text-sm text-tinta-2">Nada por ahora.</p>
-              ) : (
-                <ul className="mt-2 flex flex-col gap-1.5 text-sm">
-                  {comprar.map((item, indice) => (
-                    <li key={`${item.nombre}-${indice}`} className="flex items-center gap-2">
-                      <IconoMas className="size-4 shrink-0 text-tomate" />
-                      {item.nombre}
-                    </li>
-                  ))}
-                </ul>
+            <div className="flex flex-col gap-4 rounded-campo border border-borde p-4">
+              <div>
+                <h4 className="flex justify-between text-sm font-semibold text-hoja-900">
+                  Te falta <span className="font-normal text-tinta-2">{comprar.length}</span>
+                </h4>
+                {comprar.length === 0 ? (
+                  <p className="mt-2 text-sm text-tinta-2">Con lo que tenés alcanza.</p>
+                ) : (
+                  <ul className="mt-2 flex flex-col gap-1.5 text-sm">
+                    {comprar.map((item, indice) => (
+                      <li key={`${item.nombre}-${indice}`} className="flex items-center gap-2">
+                        <IconoMas className="size-4 shrink-0 text-tomate" />
+                        {textoIngrediente(item)}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              {despensa.length > 0 && (
+                <div className="border-t border-borde pt-3">
+                  <h4 className="text-sm font-semibold text-tinta-2">De la despensa</h4>
+                  <p className="mt-1 text-sm text-tinta-2">{despensa.map(textoIngrediente).join(" · ")}</p>
+                </div>
               )}
             </div>
           </div>
@@ -289,12 +341,20 @@ export default function Cocinador({ comensales }) {
         <button
           type="button"
           onClick={() => setRecetaAbierta(null)}
-          className="self-start text-sm font-medium text-hoja-700 underline underline-offset-4"
+          className="inline-flex min-h-12 items-center gap-2 self-start rounded-full border border-hoja-900 bg-blanco px-5 font-medium text-hoja-900 transition-[transform,background-color] hover:bg-hoja-100 active:scale-95"
         >
+          <IconoFlecha className="size-5" />
           Volver a las ideas
         </button>
         <div className="mx-auto w-full max-w-4xl">
-          <TarjetaReceta receta={resultado.recetas[recetaAbierta]} onVolver={() => setRecetaAbierta(null)} />
+          <TarjetaReceta
+            receta={resultado.recetas[recetaAbierta]}
+            onVolver={() => setRecetaAbierta(null)}
+            onTraducida={(traducida) => setResultado({
+              ...resultado,
+              recetas: resultado.recetas.map((receta, indice) => (indice === recetaAbierta ? traducida : receta)),
+            })}
+          />
         </div>
       </div>
     );

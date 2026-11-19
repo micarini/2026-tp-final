@@ -7,6 +7,7 @@ import { TarjetaReceta } from "@/components/cocinador";
 import { fotoRespaldo } from "@/lib/respaldo";
 import Boton from "@/components/ui/boton";
 import EstadoVacio from "@/components/estado-vacio";
+import { IconoFlecha } from "@/components/iconos";
 
 export default function ListaDescubrir({ destacada, recetas, titulo }) {
   const [abierta, setAbierta] = useState(null);
@@ -14,11 +15,16 @@ export default function ListaDescubrir({ destacada, recetas, titulo }) {
   if (abierta) {
     return (
       <div className="flex flex-col gap-5">
-        <button type="button" onClick={() => setAbierta(null)} className="self-start text-sm font-medium text-hoja-700 underline underline-offset-4">
+        <button
+          type="button"
+          onClick={() => setAbierta(null)}
+          className="inline-flex min-h-12 items-center gap-2 self-start rounded-full border border-hoja-900 bg-blanco px-5 font-medium text-hoja-900 transition-[transform,background-color] hover:bg-hoja-100 active:scale-95"
+        >
+          <IconoFlecha className="size-5" />
           Volver a descubrir
         </button>
         <div className="mx-auto w-full max-w-4xl">
-          <TarjetaReceta receta={abierta} onVolver={() => setAbierta(null)} />
+          <TarjetaReceta receta={abierta} onVolver={() => setAbierta(null)} onTraducida={setAbierta} />
         </div>
       </div>
     );

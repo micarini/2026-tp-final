@@ -180,6 +180,22 @@ export default function AuthForm({ modo }) {
 
   return (
     <div className="flex flex-col gap-6">
+      <Boton
+        type="button"
+        variante="secundario"
+        onClick={handleGoogle}
+        disabled={cargando}
+        className="w-full"
+      >
+        Continuar con Google
+      </Boton>
+
+
+      <div className="flex items-center gap-3 text-sm text-tinta-2" aria-hidden="true">
+        <span className="h-px flex-1 bg-borde" />o<span className="h-px flex-1 bg-borde" />
+      </div>
+
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
         {esRegistro && (
           <Campo
@@ -248,20 +264,6 @@ export default function AuthForm({ modo }) {
           {esRegistro ? "Crear cuenta" : "Ingresar"}
         </Boton>
       </form>
-
-      <div className="flex items-center gap-3 text-sm text-tinta-2" aria-hidden="true">
-        <span className="h-px flex-1 bg-borde" />o<span className="h-px flex-1 bg-borde" />
-      </div>
-
-      <Boton
-        type="button"
-        variante="secundario"
-        onClick={handleGoogle}
-        disabled={cargando}
-        className="w-full"
-      >
-        Continuar con Google
-      </Boton>
 
       <p className="text-center text-sm text-tinta-2">
         {esRegistro ? "¿Ya tenés cuenta? " : "¿Todavía no tenés cuenta? "}

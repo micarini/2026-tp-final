@@ -28,11 +28,11 @@ export async function buscarPorIngrediente(ingrediente) {
   }));
 }
 
-export function intersectar(listas) {
-  if (listas.some((lista) => lista.length === 0)) return [];
+// Devuelve los platos que aparecen en al menos "minimo" de las listas (una lista por ingrediente), los que cubren más ingredientes primero.
+// Si ninguno llega al mínimo, devuelve vacío: mejor no sugerir nada que sugerir un plato que no usa lo que hay en casa.
+export function intersectar(listas, minimo = listas.length) {
   const validas = listas.filter((lista) => lista.length > 0);
   if (validas.length === 0) return [];
-  if (validas.length === 1) return validas[0];
 
   const cantidades = new Map();
   for (const lista of validas) {
@@ -41,17 +41,11 @@ export function intersectar(listas) {
     }
   }
 
-  const ids = [...cantidades.entries()]
-    .filter(([, cantidad]) => cantidad === validas.length)
-    .map(([id]) => id);
-  const idsFinales = ids.length > 0
-    ? ids
-    : [...cantidades.entries()]
-      .sort(([, cantidadA], [, cantidadB]) => cantidadB - cantidadA)
-      .map(([id]) => id);
   const porId = new Map(validas.flat().map((receta) => [receta.id, receta]));
-
-  return idsFinales.map((id) => porId.get(id)).filter(Boolean);
+  return [...cantidades.entries()]
+    .filter(([, cantidad]) => cantidad >= minimo)
+    .sort(([, cantidadA], [, cantidadB]) => cantidadB - cantidadA)
+    .map(([id]) => porId.get(id));
 }
 
 export async function obtenerReceta(id) {

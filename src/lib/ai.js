@@ -35,6 +35,9 @@ function validarReceta(valor) {
       && typeof ingrediente.nombre === "string"
       && typeof ingrediente.nombreEn === "string"
       && typeof ingrediente.aComprar === "boolean"
+      // Cada ingrediente tiene que traer cuánto usar: cantidad con unidad y gramos aproximados.
+      && String(ingrediente.cantidad ?? "").trim() !== ""
+      && Number(ingrediente.gramos) > 0
     ));
 }
 
@@ -129,7 +132,9 @@ const FORMATO_RECETA = `
 Devolvé un objeto JSON con estas claves:
 titulo (string), porQueSirve (string), porciones (number), tiempoMin (number),
 ingredientes (array de objetos con nombre, cantidad, unidad, gramos, nombreEn, aComprar),
-pasos (array de strings), reemplazos (array de strings), advertencias (array de strings).
+pasos (array de strings), reemplazos (array de strings), advertencias (array de strings, dejala vacía: las advertencias las calcula el sistema).
+OBLIGATORIO: cada ingrediente lleva la cantidad exacta para las porciones indicadas (cantidad numérica y unidad: g, ml, unidad, cucharada, taza)
+y gramos (número, peso aproximado en gramos). Nunca dejes un ingrediente sin cantidad. En los pasos mencioná las cantidades cuando importen.
 `;
 
 export async function traducirIngredientes(apiKey, lista) {
@@ -149,6 +154,7 @@ export async function adaptarReceta(apiKey, receta, contexto = {}) {
     apiKey,
     sistema: `Sos una asistente de cocina. Adaptá recetas con claridad y sin inventar restricciones.
 ${FORMATO_RECETA}
+Respondé SIEMPRE en español rioplatense: título, descripción, ingredientes (nombre), pasos, reemplazos y advertencias.
 Normalizá cada ingrediente en nombreEn (inglés) y gramos cuando sea posible.
 Marcá aComprar según los ingredientes que la persona tiene. Las restricciones se controlan fuera de la IA.`,
     usuario: JSON.stringify({ receta, contexto }),
@@ -161,6 +167,7 @@ export async function proponerReceta(apiKey, contexto) {
     apiKey,
     sistema: `Sos una asistente de cocina. Proponé una receta realista usando los ingredientes disponibles.
 ${FORMATO_RECETA}
+Respondé SIEMPRE en español rioplatense. Usá sobre todo los ingredientes que la persona tiene; agregá pocos extras y que sean comunes.
 Respetá el contexto recibido y no agregues ingredientes prohibidos.`,
     usuario: JSON.stringify(contexto),
     validar: validarReceta,
@@ -175,10 +182,45 @@ Devolvé un objeto con la clave recetas, que debe ser un array de 2 o 3 objetos.
 Cada objeto debe tener estas claves:
 titulo (string), porQueSirve (string), porciones (number), tiempoMin (number),
 ingredientes (array de objetos con nombre, cantidad, unidad, gramos, nombreEn, aComprar),
-pasos (array de strings), reemplazos (array de strings), advertencias (array de strings).
+pasos (array de strings), reemplazos (array de strings), advertencias (array de strings, dejala vacía: las advertencias las calcula el sistema).
+OBLIGATORIO: cada ingrediente lleva la cantidad exacta para las porciones indicadas (cantidad numérica y unidad: g, ml, unidad, cucharada, taza)
+y gramos (número, peso aproximado en gramos). Nunca dejes un ingrediente sin cantidad.
+Respondé SIEMPRE en español rioplatense. Cada receta tiene que usar sobre todo los ingredientes que la persona tiene; agregá pocos extras y que sean comunes.
 Respetá el contexto recibido y no agregues ingredientes prohibidos.`,
     usuario: JSON.stringify(contexto),
     validar: validarListaRecetas,
   });
   return resultado.recetas;
+}
+
+// Traduce al español una receta que vino en inglés (de TheMealDB), sin cambiar su estructura.
+function validarTraduccion(valor) {
+  return validarObjeto(valor)
+    && typeof valor.titulo === "string"
+    && typeof valor.porQueSirve === "string"
+    && Array.isArray(valor.ingredientes)
+    && valor.ingredientes.every((i) => validarObjeto(i) && typeof i.nombre === "string")
+    && Array.isArray(valor.pasos)
+    && valor.pasos.length > 0
+    && valor.pasos.every((paso) => typeof paso === "string");
+}
+
+export async function traducirRecetaAlEspanol(apiKey, receta) {
+  const resultado = await pedirJSON({
+    apiKey,
+    sistema: `Traducí esta receta del inglés al español rioplatense. Mantené el mismo orden y la misma cantidad de ingredientes.
+Devolvé un objeto JSON con: titulo (string), porQueSirve (string), ingredientes (array de objetos con nombre, en el mismo orden que el original) y pasos (array de strings, un paso por elemento).
+No cambies cantidades ni inventes pasos o ingredientes.`,
+    usuario: JSON.stringify({
+      titulo: receta.titulo,
+      porQueSirve: receta.porQueSirve,
+      ingredientes: receta.ingredientes.map((i) => ({ nombre: i.nombre })),
+      pasos: receta.pasos,
+    }),
+    validar: validarTraduccion,
+  });
+  if (resultado.ingredientes.length !== receta.ingredientes.length) {
+    throw new Error("La IA devolvió un formato inválido.");
+  }
+  return resultado;
 }

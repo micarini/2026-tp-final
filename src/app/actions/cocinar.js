@@ -83,19 +83,32 @@ function revisarSugerencias(recetas, restricciones, comensalIds) {
         restriccionesAplicadas: restricciones,
         apta: control.apta,
         prohibidos: control.prohibidos,
-        advertencias: [...new Set([...receta.advertencias, ...control.avisos.map((aviso) => aviso.texto)])],
+        // Solo avisos que salen del código y de los ingredientes reales: la IA inventaba advertencias genéricas (por ejemplo, salsa de soja en una receta que no la lleva).
+        advertencias: [...new Set(control.avisos.map((aviso) => aviso.texto))],
       };
     })
     .filter((receta) => receta.apta);
 }
 
 // La foto es opcional: si Unsplash falla, la receta se muestra igual, sin imagen.
-async function fotoOpcional(titulo) {
+async function fotoOpcional(titulo, usadas = []) {
   try {
-    return await buscarFoto(titulo);
+    return await buscarFoto(titulo, usadas);
   } catch {
     return null;
   }
+}
+
+// Busca la foto de cada propuesta de a una, salteando las que ya se usaron en esta misma búsqueda.
+async function propuestasConFoto(propuestas, comensalIds) {
+  const usadas = [];
+  const resultado = [];
+  for (const propuesta of propuestas) {
+    const foto = await fotoOpcional(propuesta.titulo, usadas);
+    if (foto?.url) usadas.push(foto.url);
+    resultado.push({ ...normalizarReceta(propuesta, "ia", foto), comensalIds });
+  }
+  return resultado;
 }
 
 function traducirSinIA(ingredientes) {
@@ -103,6 +116,22 @@ function traducirSinIA(ingredientes) {
     nombre,
     nombreEn: TRADUCCIONES_BASICAS[nombre] ?? nombre,
   }));
+}
+
+// Qué ingredientes de una receta ya están en casa. Compara por nombre en español y en inglés,
+// porque la receta puede venir en cualquiera de los dos idiomas. Así lo "a comprar" no repite lo que ya tenés.
+function marcarDisponibles(receta, ingredientes, traducidos) {
+  const terminos = [...ingredientes, ...traducidos.map((item) => item.nombreEn)]
+    .map((texto) => String(texto ?? "").toLowerCase().trim())
+    .filter(Boolean);
+  return {
+    ...receta,
+    ingredientes: receta.ingredientes.map((ingrediente) => {
+      const nombres = [ingrediente.nombre, ingrediente.nombreEn].map((texto) => String(texto ?? "").toLowerCase());
+      const lotengo = terminos.some((termino) => nombres.some((nombre) => nombre.includes(termino) || termino.includes(nombre)));
+      return { ...ingrediente, aComprar: !lotengo };
+    }),
+  };
 }
 
 function recetaSinIA(detalle, ingredientesDisponibles, comensalIds) {
@@ -123,6 +152,7 @@ function recetaSinIA(detalle, ingredientesDisponibles, comensalIds) {
     pasos: [detalle.instrucciones],
     reemplazos: [],
     advertencias: [],
+    sinAdaptar: true,
     origen: "themealdb",
     themealdbId: detalle.id,
     comensalIds,
@@ -190,7 +220,8 @@ export async function sugerirRecetas(datos) {
       .map((ingrediente) => ingrediente.nombreEn)
       .filter(Boolean);
     const listas = await Promise.all(consultas.map(buscarPorIngrediente));
-    const coincidencias = intersectar(listas);
+    // Tiene que usar al menos la mitad (redondeada para arriba) de lo que hay en casa.
+    const coincidencias = intersectar(listas, Math.max(1, Math.ceil(listas.length * 0.6)));
     const contexto = {
       ingredientes,
       noConsigue,
@@ -239,10 +270,7 @@ export async function sugerirRecetas(datos) {
         recetas = [];
       } else {
         const propuestas = await proponerRecetas(apiKey, contexto);
-        recetas = await Promise.all(propuestas.map(async (propuesta) => ({
-          ...normalizarReceta(propuesta, "ia", await fotoOpcional(propuesta.titulo)),
-          comensalIds,
-        })));
+        recetas = await propuestasConFoto(propuestas, comensalIds);
       }
     }
 
@@ -250,13 +278,11 @@ export async function sugerirRecetas(datos) {
 
     if (groqDisponible && revisadas.length < 2 && coincidencias.length > 0) {
       const complementarias = await proponerRecetas(apiKey, contexto);
-      const normalizadas = await Promise.all(complementarias.map(async (propuesta) => ({
-        ...normalizarReceta(propuesta, "ia", await fotoOpcional(propuesta.titulo)),
-        comensalIds,
-      })));
+      const normalizadas = await propuestasConFoto(complementarias, comensalIds);
       revisadas = [...revisadas, ...revisarSugerencias(normalizadas, restricciones, comensalIds)];
     }
-    revisadas = revisadas.slice(0, 3);
+    // Lo "a comprar" se decide acá, no la IA: si el ingrediente ya está en casa, no se repite en la lista de compras.
+    revisadas = revisadas.slice(0, 3).map((receta) => marcarDisponibles(receta, ingredientes, traducidos));
 
     if (revisadas.length === 0) {
       return {
