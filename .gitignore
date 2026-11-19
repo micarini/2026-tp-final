@@ -40,3 +40,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Material de trabajo que no va a GitHub
+/archivo-local/
+/docs/guion-presentacion.md
+/docs/plan-v1.md
+/docs/brief-ui.md
+/docs/loop-charter.md
+/docs/prompts-imagenes.md
+/LOOP-STATE.md
+/AGENTS.md
+/.claude/
