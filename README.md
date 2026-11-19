@@ -194,18 +194,12 @@ Capturas en pantalla de computadora, con el usuario de prueba.
 
 Declaro que usé herramientas de IA durante el desarrollo:
 
-- **Claude Code** (Anthropic): para escribir y revisar código, armar la documentación (PRD, plan, brief de diseño y este README), escribir pruebas y revisar cambios contra las reglas del proyecto.
+- **Claude Code** (Anthropic): para escribir y revisar código, armar la documentación (el PRD y este README), escribir pruebas y revisar cambios contra las reglas del proyecto.
 - **GitHub Copilot**: un poco, para hacer cambios mínimos de estructura y flujo de la app cuando se me acabaron los créditos de Claude.
 - **IA de Figma**: como ayuda con el diseño de la app.
 - **Gemini**: para generar las ilustraciones de la landing, los estados vacíos y las fotos de respaldo de las recetas.
 - **Groq** (modelos de lenguaje abiertos): forma parte del producto. Traduce ingredientes, adapta y propone recetas, ajusta recetas, responde preguntas, importa recetas desde texto o capturas y arma menús para grupos.
 
-Todo el código puede ser explicado por quien lo entrega.
-
 ### Reflexión
 
-_Borrador para reescribir con tus palabras, con tu experiencia:_
-
-La IA aceleró mucho el trabajo, pero casi nada salió bien a la primera. Hubo que corregir cosas concretas: el cálculo de macros tomaba el primer resultado de USDA, que a veces era un producto procesado (con eso, 120 g de carne daban 64 g de proteína), y hubo que elegir el alimento crudo y entero. La IA inventaba advertencias genéricas (como "no agregues salsa de soja" en una receta sin soja), así que las advertencias pasaron a salir solo del código. Un despliegue en Vercel falló por una incompatibilidad entre `firebase-admin` y la versión de `jose`, y la solución fue fijar la versión de una dependencia. Las listas de restricciones marcaban como prohibida una "harina de mijo (sin gluten)", un falso positivo que se corrigió con excepciones.
-
-Aprendí que la IA es buena para proponer y para hacer el trabajo repetitivo, pero que lo importante (restricciones, seguridad, límites, validación de lo que llega del navegador) tiene que controlarlo el código y verificarse con pruebas y a mano. También aprendí a desconfiar de lo que la IA afirma haber hecho: hay que probarlo.
+La IA aceleró mucho el trabajo, pero casi nada sale bien a la primera. Hubo que corregir cosas concretas: el cálculo de macros tomaba el primer resultado de USDA, que a veces era un producto procesado (con eso, 120 g de carne daban 64 g de proteína), y hubo que elegir el alimento crudo y entero. La IA inventaba advertencias genéricas (como "no agregues salsa de soja" en una receta sin soja), así que las advertencias pasaron a salir solo del código. Las listas de restricciones marcaban como prohibida una "harina de mijo (sin gluten)", un falso positivo que se corrigió con excepciones. Y asi miles de otros ejemplos. Es verdad que la IA ayuda para poder tener buenos resultados en poco tiempo, pero hay que tener ojo critico e ir corrigiendo cada detalle en donde se equivoca. La IA es buena para proponer y para hacer el trabajo repetitivo, pero lo importante (restricciones, seguridad, límites, validación de lo que llega del navegador) tiene que controlarlo el código y verificarse con pruebas y a mano. 
