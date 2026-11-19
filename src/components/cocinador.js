@@ -179,7 +179,7 @@ function FotoReceta({ receta, clase }) {
         {nombres.map((nombre, indice) => (
           <span
             key={nombre}
-            className="grid size-16 place-items-center rounded-full border-2 border-blanco bg-lechuga p-1 text-center text-[0.7rem] leading-tight font-semibold text-tinta shadow-tarjeta animate-pegar"
+            className="inline-flex items-center rounded-full border-2 border-blanco bg-lechuga px-3 py-1.5 text-xs font-semibold whitespace-nowrap text-tinta shadow-tarjeta animate-pegar"
             style={{ "--giro": `${indice === 0 ? -8 : 6}deg` }}
           >
             {nombre}{adaptada && "*"}

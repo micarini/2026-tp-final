@@ -99,8 +99,10 @@ Otros comandos: `npm run build`, `npm run start`, `npm run lint`. Pruebas sin re
 
 ## Usuario de prueba
 
-- **Email:** _completar_
-- **Contraseña:** _completar_
+- **Email:** prueba.tuppi@gmail.com
+- **Contraseña:** prueba123
+
+Es una cuenta creada solo para la corrección: el email no se usa para nada más y la contraseña no se usa en ningún otro servicio.
 
 ## Capturas
 
