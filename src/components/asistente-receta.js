@@ -66,16 +66,16 @@ export default function AsistenteReceta({ receta, onCambiada }) {
 
       <form onSubmit={preguntar} className="flex flex-col gap-2">
         <label htmlFor="pregunta-receta" className="font-titulo text-lg font-semibold">Preguntale a Tuppi</label>
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2">
           <input
             id="pregunta-receta"
             value={pregunta}
             onChange={(e) => setPregunta(e.target.value)}
             maxLength={300}
             placeholder="¿Con qué reemplazo la crema?"
-            className="min-h-11 min-w-0 flex-1 rounded-campo border border-borde bg-blanco px-3"
+            className="min-h-11 w-full rounded-campo border border-borde bg-blanco px-3"
           />
-          <Boton type="submit" variante="secundario" cargando={trabajando === "pregunta"} disabled={!pregunta.trim() || pensando}>
+          <Boton type="submit" variante="secundario" className="self-start" cargando={trabajando === "pregunta"} disabled={!pregunta.trim() || pensando}>
             Preguntar
           </Boton>
         </div>

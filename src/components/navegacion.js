@@ -57,7 +57,7 @@ export default function Navegacion() {
       aria-label="Principal"
       className={
         "fixed inset-x-0 bottom-0 z-10 border-t border-borde bg-blanco px-2 pt-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-4px_16px_rgb(18_56_40_/_0.06)] " +
-        "lg:static lg:border-t-0 lg:border-b lg:px-8 lg:py-2.5 lg:shadow-none"
+        "lg:sticky lg:top-0 lg:border-t-0 lg:border-b lg:px-8 lg:py-2.5 lg:shadow-none"
       }
     >
       <div className="mx-auto flex max-w-[1248px] items-center gap-1">

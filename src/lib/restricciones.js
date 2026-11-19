@@ -207,6 +207,11 @@ export function revisarReceta(receta, ids) {
       for (const excepcion of opcion.excepciones) {
         texto = texto.replaceAll(normalizar(excepcion), " ");
       }
+      // "pasta de vainilla", "pasta de ajo", "pasta de curry": son condimentos, no fideos. Solo cuentan como pasta
+      // si dicen de qué cereal son ("pasta de trigo", "pasta de sémola", "pasta de huevo").
+      if (opcion.id === "sin-gluten") {
+        texto = texto.replace(/\bpasta de (?!trigo|semola|harina|huevo|espelta|centeno|cebada)\S+/g, " ");
+      }
       const palabra = opcion.prohibidos.find((p) => contiene(texto, p));
       if (palabra) {
         prohibidos.push({ ingrediente: ingrediente.nombre, motivo: opcion.nombre });

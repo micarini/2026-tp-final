@@ -99,6 +99,8 @@ export async function armarMenuGrupo(datos) {
           nombre: String(i.nombre),
           cantidad: String(i.cantidad ?? ""),
           unidad: String(i.unidad ?? ""),
+          nombreEn: String(i.nombreEn ?? i.nombre),
+          gramos: Number(i.gramos) || null,
         })),
         pasos: bruto.pasos.map(String),
         consejosAhorro: bruto.consejosAhorro.map(String),

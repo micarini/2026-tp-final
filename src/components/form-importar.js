@@ -72,8 +72,10 @@ export default function FormImportar({ comensales }) {
   }
 
   return (
-    <form onSubmit={importar} className="flex max-w-2xl flex-col gap-6 rounded-tarjeta bg-blanco p-5 shadow-tarjeta sm:p-6">
-      <div className="flex flex-col gap-2">
+    <form onSubmit={importar} className="flex flex-col gap-8 rounded-tarjeta bg-blanco p-5 shadow-tarjeta sm:p-6 lg:p-8">
+      {/* Desktop: el texto de la receta a la izquierda; capturas y comensales a la derecha */}
+      <div className="grid gap-8 lg:grid-cols-2 lg:gap-x-14">
+      <div className="flex flex-col gap-2 lg:h-full">
         <label htmlFor="texto-receta" className="font-titulo text-xl font-semibold">Pegá la receta</label>
         <p className="text-sm text-tinta-2">Copiá la descripción del reel de Instagram o TikTok, o el texto de un blog. Los links no se pueden abrir: tiene que ser el texto.</p>
         <textarea
@@ -81,12 +83,13 @@ export default function FormImportar({ comensales }) {
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           maxLength={8000}
-          rows={8}
-          className="w-full rounded-campo border border-borde bg-blanco p-4 text-base focus:border-hoja-700"
+          rows={14}
+          className="min-h-72 w-full flex-1 rounded-campo border border-borde bg-blanco p-4 text-base focus:border-hoja-700 lg:min-h-96"
           placeholder="Ingredientes, pasos…"
         />
       </div>
 
+        <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-3">
         <h2 className="font-titulo text-xl font-semibold">O subí capturas</h2>
         <p className="text-sm text-tinta-2">Hasta 3, JPG o PNG. Se mandan a la IA para leerlas y no se guardan.</p>
@@ -133,6 +136,9 @@ export default function FormImportar({ comensales }) {
           })}
         </div>
       </fieldset>
+
+        </div>
+      </div>
 
       {error && <p role="alert" className="text-sm text-tomate">{error}</p>}
 

@@ -5,6 +5,7 @@ import { useState, useTransition } from "react";
 import { armarMenuGrupo } from "@/app/actions/grupo";
 import { RESTRICCIONES, ALERGIAS } from "@/lib/restricciones";
 import Boton from "@/components/ui/boton";
+import GuardarReceta from "@/components/guardar-receta";
 import Image from "next/image";
 import { fotoRespaldo } from "@/lib/respaldo";
 import { IconoFlecha, IconoCheck } from "@/components/iconos";
@@ -30,8 +31,30 @@ function Contador({ valor, setValor, minimo, maximo, etiqueta }) {
   );
 }
 
+// Un menú de grupo se guarda en el recetario como una receta más: las adaptaciones quedan como pasos al final.
+function recetaDeMenu(menu) {
+  return {
+    titulo: menu.titulo,
+    porQueSirve: menu.porQueSirve,
+    notas: `Menú para ${menu.personas} personas · ${menu.presupuesto}`,
+    porciones: menu.personas,
+    tiempoMin: menu.tiempoMin,
+    ingredientes: menu.ingredientes.map((i) => ({ ...i, nombreEn: i.nombreEn || i.nombre, gramos: i.gramos ?? null, aComprar: false })),
+    pasos: [
+      ...menu.pasos,
+      ...menu.adaptaciones.map((a) => `Para ${a.personas} ${a.personas === 1 ? "persona" : "personas"} (${a.nombre.toLowerCase()}): ${a.cambios}${a.ingredientesExtra.length ? ` Sumar: ${a.ingredientesExtra.map((i) => [i.cantidad, i.unidad, i.nombre].filter(Boolean).join(" ")).join(", ")}.` : ""}`),
+    ],
+    reemplazos: [],
+    advertencias: [],
+    imagen: menu.imagen ? { url: menu.imagen.url, fuente: "unsplash", credito: menu.imagen.credito, link: menu.imagen.link } : null,
+    origen: "ia",
+    comensalIds: [],
+  };
+}
+
 function Menu({ menu, onVolver, onCambiar, cambiando }) {
   const [pedido, setPedido] = useState("");
+  const [comprados, setComprados] = useState({});
   const celiacoOAlergia = menu.adaptaciones.some((a) => a.id === "sin-gluten" || ALERGIAS.some((x) => x.id === a.id));
   return (
     <div className="flex flex-col gap-5">
@@ -40,15 +63,17 @@ function Menu({ menu, onVolver, onCambiar, cambiando }) {
         <IconoFlecha className="size-5" /> Armar otro menú
       </button>
 
-      <article className="flex flex-col gap-6 rounded-tarjeta bg-blanco p-5 shadow-tarjeta animate-subir sm:p-6">
+      <article className="flex flex-col gap-8 rounded-tarjeta bg-blanco p-5 shadow-tarjeta animate-subir sm:p-6 lg:grid lg:grid-cols-[320px_1fr] lg:items-start lg:gap-x-10">
+        {/* Desktop: foto chica y datos a la izquierda; compras, pasos y adaptaciones a la derecha */}
+        <aside className="flex flex-col gap-4">
         {menu.imagen?.url ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={menu.imagen.url} alt="" className="aspect-[16/7] w-full rounded-campo object-cover" />
+          <img src={menu.imagen.url} alt="" className="aspect-[4/3] w-full rounded-campo object-cover" />
         ) : (
-          <Image src={fotoRespaldo(menu.titulo)} alt="" width={1280} height={720} className="aspect-[16/7] w-full rounded-campo object-cover" />
+          <Image src={fotoRespaldo(menu.titulo)} alt="" width={1280} height={720} className="aspect-[4/3] w-full rounded-campo object-cover" />
         )}
         {menu.imagen?.credito && (
-          <a href={menu.imagen.link} target="_blank" rel="noreferrer" className="-mt-4 text-xs text-tinta-2 underline">Foto de {menu.imagen.credito}</a>
+          <a href={menu.imagen.link} target="_blank" rel="noreferrer" className="text-xs text-tinta-2 underline">Foto de {menu.imagen.credito}</a>
         )}
         <header className="flex flex-col gap-2">
           <span className="self-start rounded-full bg-morron px-3 py-1 text-xs font-semibold">Para {menu.personas} personas · {menu.presupuesto}</span>
@@ -57,16 +82,54 @@ function Menu({ menu, onVolver, onCambiar, cambiando }) {
           <p className="rounded-campo bg-hoja-100 px-3 py-2 text-sm text-tinta-2 sm:self-start">{menu.tiempoMin} min</p>
         </header>
 
-        <div className="grid gap-8 lg:grid-cols-2 lg:items-start">
+        <GuardarReceta receta={recetaDeMenu(menu)} />
+
+        <section className="flex flex-col gap-3 rounded-campo border border-borde p-4" aria-label="Cambiar el menú">
+          <h3 className="font-titulo text-lg font-semibold">¿Lo cambiamos?</h3>
+          <div className="flex flex-wrap gap-2">
+            {CAMBIOS.map((cambio) => (
+              <button key={cambio} type="button" disabled={cambiando} onClick={() => onCambiar(cambio === "Otra idea" ? "Proponé un menú totalmente distinto." : cambio)}
+                className="min-h-10 rounded-full border border-borde bg-blanco px-4 text-sm font-medium hover:border-hoja-700 disabled:opacity-50">
+                {cambio}
+              </button>
+            ))}
+          </div>
+          <form onSubmit={(e) => { e.preventDefault(); if (pedido.trim()) onCambiar(pedido); }} className="flex flex-col gap-2">
+            <input value={pedido} onChange={(e) => setPedido(e.target.value)} maxLength={200} aria-label="Pedido para cambiar el menú"
+              placeholder="Hace calor, algo más liviano…" className="min-h-11 w-full rounded-campo border border-borde bg-blanco px-3" />
+            <Boton type="submit" variante="secundario" cargando={cambiando} disabled={!pedido.trim()} className="self-start">Cambiar</Boton>
+          </form>
+        </section>
+
+        </aside>
+
+        <div className="flex flex-col gap-8">
+          <div className="grid gap-8 xl:grid-cols-2 xl:items-start">
           <section className="flex flex-col gap-3">
             <h3 className="font-titulo text-xl font-semibold">Qué comprar, para todos</h3>
-            <ul className="grid gap-2 rounded-campo bg-hoja-100 p-4 text-sm sm:grid-cols-2">
-              {menu.ingredientes.map((i, indice) => (
-                <li key={`${i.nombre}-${indice}`} className="flex items-start gap-2">
-                  <IconoCheck className="mt-0.5 size-4 shrink-0 text-hoja-700" />
-                  {[i.cantidad, i.unidad, i.nombre].filter(Boolean).join(" ")}
-                </li>
-              ))}
+            {/* Lista de compras: una sola columna, cada ingrediente se tilda (y se tacha) al comprarlo */}
+            <ul className="flex flex-col rounded-campo bg-hoja-100 p-2 text-sm">
+              {menu.ingredientes.map((i, indice) => {
+                const marcado = Boolean(comprados[indice]);
+                return (
+                  <li key={`${i.nombre}-${indice}`}>
+                    <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-campo px-2 hover:bg-blanco/60">
+                      <input
+                        type="checkbox"
+                        checked={marcado}
+                        onChange={() => setComprados({ ...comprados, [indice]: !marcado })}
+                        className="peer sr-only"
+                      />
+                      <span className="grid size-5 shrink-0 place-items-center rounded-md border-2 border-hoja-700 bg-blanco text-blanco transition-colors peer-checked:bg-hoja-900 peer-checked:border-hoja-900 peer-focus-visible:ring-2 peer-focus-visible:ring-hoja-700 peer-focus-visible:ring-offset-2">
+                        {marcado && <IconoCheck className="size-3.5" />}
+                      </span>
+                      <span className={marcado ? "text-tinta-2 line-through" : ""}>
+                        {[i.cantidad, i.unidad, i.nombre].filter(Boolean).join(" ")}
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
             </ul>
             {menu.consejosAhorro.length > 0 && (
               <div className="rounded-campo border border-borde p-4 text-sm">
@@ -87,24 +150,7 @@ function Menu({ menu, onVolver, onCambiar, cambiando }) {
               ))}
             </ol>
           </section>
-        </div>
-
-        <section className="flex flex-col gap-3 rounded-campo border border-borde p-4" aria-label="Cambiar el menú">
-          <h3 className="font-titulo text-lg font-semibold">¿Lo cambiamos?</h3>
-          <div className="flex flex-wrap gap-2">
-            {CAMBIOS.map((cambio) => (
-              <button key={cambio} type="button" disabled={cambiando} onClick={() => onCambiar(cambio === "Otra idea" ? "Proponé un menú totalmente distinto." : cambio)}
-                className="min-h-10 rounded-full border border-borde bg-blanco px-4 text-sm font-medium hover:border-hoja-700 disabled:opacity-50">
-                {cambio}
-              </button>
-            ))}
           </div>
-          <form onSubmit={(e) => { e.preventDefault(); if (pedido.trim()) onCambiar(pedido); }} className="flex gap-2">
-            <input value={pedido} onChange={(e) => setPedido(e.target.value)} maxLength={200} aria-label="Pedido para cambiar el menú"
-              placeholder="Hace 30 grados, algo más liviano…" className="min-h-11 min-w-0 flex-1 rounded-campo border border-borde bg-blanco px-3" />
-            <Boton type="submit" variante="secundario" cargando={cambiando} disabled={!pedido.trim()}>Cambiar</Boton>
-          </form>
-        </section>
 
         {menu.adaptaciones.length > 0 && (
           <section className="flex flex-col gap-3 border-t border-borde pt-6">
@@ -114,7 +160,8 @@ function Menu({ menu, onVolver, onCambiar, cambiando }) {
                 <strong>Ojo con la contaminación cruzada:</strong> para celíacos y alergias, usá utensilios, tablas y ollas separados.
               </p>
             )}
-            <div className="grid gap-4 md:grid-cols-2">
+            {/* auto-fit: con una sola adaptación la tarjeta ocupa todo el ancho; con varias se reparten en columnas */}
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(18rem,1fr))] gap-4">
               {menu.adaptaciones.map((a) => (
                 <div key={a.id} className="flex flex-col gap-2 rounded-campo border border-borde p-4">
                   <div className="flex items-start justify-between gap-2">
@@ -134,6 +181,7 @@ function Menu({ menu, onVolver, onCambiar, cambiando }) {
             </div>
           </section>
         )}
+        </div>
       </article>
     </div>
   );
@@ -202,7 +250,10 @@ export default function FormGrupo() {
   }
 
   return (
-    <form onSubmit={armar} className="flex max-w-2xl flex-col gap-8 rounded-tarjeta bg-blanco p-5 shadow-tarjeta sm:p-6">
+    <form onSubmit={armar} className="flex flex-col gap-8 rounded-tarjeta bg-blanco p-5 shadow-tarjeta sm:p-6 lg:p-8">
+      {/* Desktop: dos columnas. A la izquierda lo básico, a la derecha las restricciones del grupo */}
+      <div className="grid gap-8 lg:grid-cols-2 lg:gap-x-14">
+        <div className="flex flex-col gap-8">
       <fieldset className="flex flex-col gap-4">
         <legend className="mb-1 font-titulo text-xl font-semibold">¿Cuántos son?</legend>
         <Contador valor={personas} setValor={(n) => { setPersonas(n); setGrupos(Object.fromEntries(Object.entries(grupos).map(([id, c]) => [id, Math.min(c, n)]))); }} minimo={2} maximo={30} etiqueta="Personas" />
@@ -220,6 +271,15 @@ export default function FormGrupo() {
         </div>
       </fieldset>
 
+      <fieldset className="flex flex-col gap-3">
+        <legend className="font-titulo text-xl font-semibold">¿Alguna idea o antojo?</legend>
+        <p className="text-sm text-tinta-2">Opcional. Por ejemplo: hace calor y quiero algo fresco, o que no use horno.</p>
+        <input value={idea} onChange={(e) => setIdea(e.target.value)} maxLength={150} aria-label="Idea o antojo"
+          placeholder="Algo veraniego…" className="min-h-12 rounded-campo border border-borde bg-blanco px-4" />
+      </fieldset>
+
+        </div>
+        <div className="flex flex-col gap-8">
       <fieldset className="flex flex-col gap-3">
         <legend className="font-titulo text-xl font-semibold">¿Alguien no come algo?</legend>
         <p className="text-sm text-tinta-2">Marcá las restricciones que hay en el grupo y cuántas personas las tienen. No hace falta cargarlos como comensales.</p>
@@ -254,12 +314,8 @@ export default function FormGrupo() {
           placeholder="Por ejemplo, arroz" maxLength={40} aria-label="Ingrediente" className="min-h-12 rounded-campo border border-borde bg-blanco px-4" />
       </fieldset>
 
-      <fieldset className="flex flex-col gap-3">
-        <legend className="font-titulo text-xl font-semibold">¿Alguna idea o antojo?</legend>
-        <p className="text-sm text-tinta-2">Opcional. Por ejemplo: hace calor y quiero algo fresco, o que no use horno.</p>
-        <input value={idea} onChange={(e) => setIdea(e.target.value)} maxLength={150} aria-label="Idea o antojo"
-          placeholder="Algo veraniego…" className="min-h-12 rounded-campo border border-borde bg-blanco px-4" />
-      </fieldset>
+        </div>
+      </div>
 
       {error && <p role="alert" className="text-sm text-tomate">{error}</p>}
       <Boton type="submit" cargando={armando} className="self-start">Armar menú</Boton>

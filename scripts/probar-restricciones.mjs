@@ -5,7 +5,7 @@
 import { revisarReceta, RESTRICCIONES, ALERGIAS } from "../src/lib/restricciones.js";
 
 const CASOS = {
-  "sin-gluten": { marca: ["Fideos secos", "Pan rallado", "Plain flour"], marca2: ["Tapas de empanada"], pasa: ["Arroz", "Harina de arroz", "Panceta", "Pasta de tomate", "Harina de garbanzo"] },
+  "sin-gluten": { marca: ["Fideos secos", "Pan rallado", "Plain flour", "Pasta", "Pasta de trigo"], marca2: ["Tapas de empanada"], pasa: ["Arroz", "Harina de arroz", "Panceta", "Pasta de tomate", "Harina de garbanzo", "Pasta de vainilla", "Pasta de ajo", "Harina de mijo (sin gluten)", "Harina de sorgo", "Almidón de tapioca"] },
   vegano: { marca: ["Huevos", "Queso rallado", "Miel", "Chicken breast"], pasa: ["Leche de coco", "Tofu", "Papa", "Cream of tartar"] },
   vegetariano: { marca: ["Pechuga de pollo", "Atún en lata", "Beef mince", "Lard", "Pesto"], pasa: ["Huevo", "Queso", "Lentejas"] },
   "sin-lactosa": { marca: ["Leche entera", "Manteca", "Parmesan cheese", "Nata", "Requesón"], pasa: ["Leche de almendras", "Peanut butter", "Aceite"] },

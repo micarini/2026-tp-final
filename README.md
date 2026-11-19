@@ -77,6 +77,25 @@ Un usuario tiene muchos comensales y muchas recetas; una receta referencia 0 o m
 
 Si no hay sesión, las rutas privadas redirigen a `/login`. La barra de navegación tiene Cocinar, Recetario, Descubrir y Perfil; Comensales, Configuración, Importar y Grupo se acceden desde el perfil, el recetario y "¿Qué cocino hoy?".
 
+```mermaid
+flowchart LR
+    A[Landing /] --> B[Registro /registro]
+    A --> C[Login /login]
+    B --> P[Perfil /perfil]
+    C --> D[Qué cocino hoy /cocinar]
+    P --> D
+    D --> R[Receta abierta]
+    D --> G[Cocinar para muchos /grupo]
+    R --> S[Guardar en recetario]
+    S --> L[Recetario /recetario]
+    L --> M[Detalle /recetario/id]
+    L --> I[Importar /importar]
+    I --> S
+    X[Descubrir /descubrir] --> R
+    P --> CO[Comensales /comensales]
+    P --> CF[Configuración /configuracion]
+```
+
 ## Opcionales implementados
 
 1. **Búsqueda, filtros y ordenamiento** en el recetario (texto, origen, tiempo y restricción) y búsquedas populares en Descubrir.
@@ -106,7 +125,68 @@ Es una cuenta creada solo para la corrección: el email no se usa para nada más
 
 ## Capturas
 
-_Pendiente: landing, perfil, comensales, "¿Qué cocino hoy?" con una receta abierta, cocinar para muchos, descubrir, importar y recetario._
+Capturas en pantalla de computadora, con el usuario de prueba.
+
+**Landing**
+
+![Landing](docs/capturas/landing.png)
+
+**¿Qué cocino hoy?**: ingredientes, para quién se cocina y sugerencias con el sticker de la restricción aplicada.
+
+![Qué cocino hoy](docs/capturas/cocinar.png)
+
+**Receta abierta**: macros por porción, ingredientes separados en "Tenés", "Te falta" y "De la despensa", pasos, y ajustes rápidos con preguntas a Tuppi. En la segunda captura, el control del código avisa que la respuesta nombra un alimento que el usuario evita (batata).
+
+![Receta abierta](docs/capturas/receta.png)
+![Ajustes y preguntas](docs/capturas/receta-ajustes.png)
+
+**Cocinar para muchos**: formulario del grupo, menú con lista de compras tildable y adaptaciones por restricción.
+
+![Cocinar para muchos, formulario](docs/capturas/grupo-formulario.png)
+![Cocinar para muchos, menú](docs/capturas/grupo-menu.png)
+![Cocinar para muchos, adaptaciones](docs/capturas/grupo-adaptaciones.png)
+
+**Recetario**: búsqueda, filtros y recetas guardadas.
+
+![Recetario](docs/capturas/recetario.png)
+
+**Comensales**: personas con las que se cocina y lo que no comen.
+
+![Comensales](docs/capturas/comensales.png)
+
+**Descubrir**: recetas del día y búsquedas populares, revisadas contra las restricciones.
+
+![Descubrir](docs/capturas/descubrir.png)
+![Descubrir, vegetariano](docs/capturas/descubrir-vegetariano.png)
+
+**Importar receta**: se pega el texto de una receta (acá, en inglés) y Tuppi la deja en español, adaptada y con macros por porción.
+
+![Importar receta, formulario](docs/capturas/importar.png)
+![Importar receta, resultado](docs/capturas/importar-resultado.png)
+
+**Perfil**: restricciones, alergias, porciones y avatar de comida.
+
+![Perfil](docs/capturas/perfil.png)
+![Elegir avatar](docs/capturas/perfil-avatares.png)
+
+**Despensa y clave propia de Groq**: guía animada paso a paso para cargar la clave y buscar sin límite.
+
+![Despensa y guía de la clave de Groq](docs/capturas/perfil-despensa-groq.png)
+
+**Configuración**: cuenta, cerrar sesión y eliminación de cuenta con doble confirmación.
+
+![Configuración](docs/capturas/configuracion.png)
+![Eliminar cuenta](docs/capturas/configuracion-eliminar.png)
+
+**Versión celular**
+
+| Landing | Ingreso | Registro |
+|---|---|---|
+| ![Landing en celular](docs/capturas/movil-landing.png) | ![Ingreso en celular](docs/capturas/movil-login.png) | ![Registro en celular](docs/capturas/movil-registro.png) |
+
+| Receta guardada | Ingredientes y pasos |
+|---|---|
+| ![Receta en celular](docs/capturas/movil-receta.png) | ![Ingredientes y pasos en celular](docs/capturas/movil-ingredientes.png) |
 
 ## Uso de IA
 
@@ -115,6 +195,8 @@ _Pendiente: landing, perfil, comensales, "¿Qué cocino hoy?" con una receta abi
 Declaro que usé herramientas de IA durante el desarrollo:
 
 - **Claude Code** (Anthropic): para escribir y revisar código, armar la documentación (PRD, plan, brief de diseño y este README), escribir pruebas y revisar cambios contra las reglas del proyecto.
+- **GitHub Copilot**: un poco, para hacer cambios mínimos de estructura y flujo de la app cuando se me acabaron los créditos de Claude.
+- **IA de Figma**: como ayuda con el diseño de la app.
 - **Gemini**: para generar las ilustraciones de la landing, los estados vacíos y las fotos de respaldo de las recetas.
 - **Groq** (modelos de lenguaje abiertos): forma parte del producto. Traduce ingredientes, adapta y propone recetas, ajusta recetas, responde preguntas, importa recetas desde texto o capturas y arma menús para grupos.
 
