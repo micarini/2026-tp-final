@@ -1,12 +1,14 @@
 import { Suspense } from "react";
 import { requireUser } from "@/lib/session";
 import { db } from "@/lib/firebase-admin";
-import { logout } from "@/app/actions/auth";
 import Encabezado from "@/components/encabezado";
 import Cargando from "@/components/cargando";
-import Boton from "@/components/ui/boton";
 import FormPerfil from "@/components/form-perfil";
 import ClaveGroq from "@/components/clave-groq";
+import SelectorAvatar from "@/components/selector-avatar";
+import Link from "next/link";
+import { IconoEngranaje, IconoComensales } from "@/components/iconos";
+import { AVATAR_INICIAL } from "@/lib/avatares";
 import { estadoClaveGroq } from "@/lib/claves";
 
 export const metadata = {
@@ -44,26 +46,44 @@ async function Contenido({ searchParams }) {
     alimentosEvitados: datos.alimentosEvitados ?? [],
     porcionesHabituales: datos.porcionesHabituales ?? 1,
   };
+  const avatar = datos.avatar ?? AVATAR_INICIAL;
 
   return (
     <>
-      <Encabezado
-        titulo={esBienvenida ? "¿Hay algo que no comés?" : "Perfil"}
-        bajada={
-          esBienvenida
-            ? "Marcalo una vez y Tuppi lo tiene en cuenta en cada receta."
-            : user.email
-        }
-      />
+      {esBienvenida ? (
+        <Encabezado
+          titulo="¿Hay algo que no comés?"
+          bajada="Marcalo una vez y Tuppi lo tiene en cuenta en cada receta."
+        />
+      ) : (
+        <div className="flex items-center gap-4">
+          <SelectorAvatar actual={avatar} />
+          <div className="min-w-0 flex-1">
+            <Encabezado titulo={perfil.nombre || "Perfil"} bajada={user.email} />
+          </div>
+          <Link
+            href="/configuracion"
+            aria-label="Configuración"
+            className="grid size-11 shrink-0 place-items-center rounded-full border border-borde bg-blanco text-hoja-900 transition-transform hover:bg-hoja-100 active:scale-90"
+          >
+            <IconoEngranaje className="size-5" />
+          </Link>
+        </div>
+      )}
+      {!esBienvenida && (
+        <Link
+          href="/comensales"
+          className="flex items-center gap-3 rounded-tarjeta bg-blanco p-4 shadow-tarjeta transition-transform hover:-translate-y-0.5"
+        >
+          <span className="grid size-11 place-items-center rounded-full bg-hoja-100 text-hoja-900"><IconoComensales className="size-5" /></span>
+          <span className="flex flex-col">
+            <span className="font-medium">Tus comensales</span>
+            <span className="text-sm text-tinta-2">Las personas con las que cocinás y lo que no comen.</span>
+          </span>
+        </Link>
+      )}
       <FormPerfil perfil={perfil} bienvenida={esBienvenida} />
       {!esBienvenida && <ClaveGroq cargada={clave.cargada} ultimos4={clave.ultimos4} />}
-      {!esBienvenida && (
-        <form action={logout}>
-          <Boton type="submit" variante="texto" className="px-0">
-            Cerrar sesión
-          </Boton>
-        </form>
-      )}
     </>
   );
 }

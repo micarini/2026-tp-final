@@ -2,7 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/session";
+import { revalidatePath } from "next/cache";
 import { db } from "@/lib/firebase-admin";
+import { IDS_AVATAR } from "@/lib/avatares";
 import {
   IDS_RESTRICCIONES,
   IDS_ALERGIAS,
@@ -55,5 +57,19 @@ export async function actualizarPerfil(_estadoAnterior, formData) {
 
   // Primera vez (viene del registro): después de guardar, a cocinar.
   if (formData.get("bienvenida") === "1") redirect("/cocinar");
+  return { ok: true };
+}
+
+// Guarda el avatar elegido. Solo se aceptan los ids de la lista.
+export async function elegirAvatar(id) {
+  const user = await requireUser();
+  if (!IDS_AVATAR.includes(id)) return { error: "Ese avatar no existe." };
+  try {
+    await db().doc(`users/${user.uid}`).set({ avatar: id }, { merge: true });
+  } catch (error) {
+    console.error("elegirAvatar falló:", error?.code ?? error?.message);
+    return { error: "No pudimos guardar el avatar. Probá de nuevo." };
+  }
+  revalidatePath("/perfil");
   return { ok: true };
 }

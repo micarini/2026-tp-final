@@ -8,14 +8,14 @@ import Logo from "@/components/logo";
 import {
   IconoCocinar,
   IconoRecetario,
-  IconoComensales,
+  IconoDescubrir,
   IconoPerfil,
 } from "@/components/iconos";
 
 const DESTINOS = [
   { href: "/cocinar", texto: "Cocinar", Icono: IconoCocinar },
   { href: "/recetario", texto: "Recetario", Icono: IconoRecetario },
-  { href: "/comensales", texto: "Comensales", Icono: IconoComensales },
+  { href: "/descubrir", texto: "Descubrir", Icono: IconoDescubrir },
   { href: "/perfil", texto: "Perfil", Icono: IconoPerfil },
 ];
 

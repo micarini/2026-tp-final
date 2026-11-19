@@ -85,3 +85,16 @@ export async function obtenerCategorias() {
   const datos = await pedir("list.php?c=list");
   return (datos.meals ?? []).map((categoria) => categoria.strCategory).filter(Boolean);
 }
+
+// Recetas de una categoría de TheMealDB (por ejemplo "Chicken"). No dependen del usuario: se cachean.
+export async function listarPorCategoria(categoria) {
+  "use cache";
+  const datos = await pedir(`filter.php?c=${encodeURIComponent(categoria)}`);
+  return (datos.meals ?? []).map((comida) => ({ id: comida.idMeal, titulo: comida.strMeal, imagen: comida.strMealThumb }));
+}
+
+// Igual que obtenerReceta, pero cacheada: el mismo plato lo piden muchas personas.
+export async function obtenerRecetaCacheada(id) {
+  "use cache";
+  return obtenerReceta(id);
+}

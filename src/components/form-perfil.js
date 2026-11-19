@@ -66,36 +66,31 @@ export default function FormPerfil({ perfil, bienvenida }) {
           required
         />
 
-        <fieldset className="flex flex-col gap-3">
-          <legend className="text-sm font-medium">¿Para cuántas porciones cocinás?</legend>
-          <div className="flex items-center gap-4">
-            <Boton
+        <fieldset className="flex flex-col gap-4">
+          <legend className="mb-1 text-sm font-medium">¿Para cuántas porciones cocinás?</legend>
+          {/* Sin fondo: dos botones redondos y el número en el medio. El + va lleno y el − con borde */}
+          <div className="flex items-center gap-5">
+            <button
               type="button"
-              variante="secundario"
-              className="size-12 px-0"
               onClick={() => setPorciones(Math.max(1, porciones - 1))}
               disabled={porciones <= 1}
               aria-label="Una porción menos"
+              className="grid size-10 place-items-center rounded-full border border-borde bg-blanco text-hoja-900 transition-[transform,opacity] active:scale-90 disabled:opacity-40"
             >
-              −
-            </Boton>
-            <output
-              key={porciones}
-              aria-live="polite"
-              className="min-w-8 text-center font-titulo text-3xl font-semibold tabular-nums animate-pop"
-            >
+              <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14" /></svg>
+            </button>
+            <output key={porciones} aria-live="polite" className="min-w-6 text-center font-titulo text-3xl font-semibold tabular-nums animate-pop">
               {porciones}
             </output>
-            <Boton
+            <button
               type="button"
-              variante="secundario"
-              className="size-12 px-0"
               onClick={() => setPorciones(Math.min(4, porciones + 1))}
               disabled={porciones >= 4}
               aria-label="Una porción más"
+              className="grid size-10 place-items-center rounded-full bg-hoja-900 text-blanco transition-[transform,opacity] active:scale-90 disabled:opacity-40"
             >
-              +
-            </Boton>
+              <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
+            </button>
           </div>
           <input type="hidden" name="porcionesHabituales" value={porciones} />
         </fieldset>

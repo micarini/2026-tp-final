@@ -22,5 +22,7 @@ export const config = {
     "/importar/:path*",
     "/perfil/:path*",
     "/comensales/:path*",
+    "/configuracion/:path*",
+    "/descubrir/:path*",
   ],
 };

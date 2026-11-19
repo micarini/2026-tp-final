@@ -148,7 +148,7 @@ function FotoReceta({ receta, clase }) {
   );
 }
 
-function TarjetaReceta({ receta, compacta = false, onAbrir, onVolver }) {
+export function TarjetaReceta({ receta, compacta = false, onAbrir, onVolver }) {
   const propios = receta.ingredientes.filter((ingrediente) => !ingrediente.aComprar);
   const comprar = receta.ingredientes.filter((ingrediente) => ingrediente.aComprar);
 
