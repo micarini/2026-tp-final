@@ -172,3 +172,31 @@ select {
 @media (prefers-reduced-motion: reduce) {
   .crecer { animation: none; }
 }
+
+/* Onboarding de la clave de Groq: el botón que hay que tocar late y un cursor lo toca. */
+@keyframes latir {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(240 124 42 / 0.6); }
+  50% { box-shadow: 0 0 0 8px rgb(240 124 42 / 0); }
+}
+@keyframes toque {
+  0% { transform: translate(28px, 28px); opacity: 0; }
+  25% { opacity: 1; }
+  55% { transform: translate(0, 0) scale(1); }
+  65% { transform: translate(0, 0) scale(0.82); }
+  80%, 100% { transform: translate(0, 0) scale(1); opacity: 1; }
+}
+@keyframes escribir {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+@keyframes tildar {
+  0%, 40% { transform: scale(0); }
+  60%, 100% { transform: scale(1); }
+}
+.objetivo { animation: latir 1.8s ease-out infinite; }
+.cursor-toque { animation: toque 2.4s ease-in-out infinite; }
+.escribiendo { animation: escribir 1.6s steps(12) both; }
+.tildando { animation: tildar 2.4s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .objetivo, .cursor-toque, .escribiendo, .tildando { animation: none; }
+}

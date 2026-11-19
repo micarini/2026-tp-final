@@ -21,10 +21,10 @@ export default function FormPerfil({ perfil, bienvenida }) {
   const ninguna = restricciones.length === 0 && alergias.length === 0;
 
   return (
-    <form action={accion} className="flex flex-col gap-8 lg:max-w-2xl">
+    <form action={accion} className="flex flex-col gap-8 lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-start">
       {bienvenida && <input type="hidden" name="bienvenida" value="1" />}
 
-      <section className="flex flex-col gap-8 rounded-tarjeta bg-blanco p-5 shadow-tarjeta sm:p-6">
+      <section className="flex flex-col gap-8 rounded-tarjeta bg-blanco p-5 shadow-tarjeta sm:p-6 lg:col-start-1">
         <GrupoOpciones
           titulo="Restricciones"
           ayuda="Tuppi revisa cada ingrediente de cada receta contra lo que marques."
@@ -55,7 +55,7 @@ export default function FormPerfil({ perfil, bienvenida }) {
         </p>
       </section>
 
-      <section className="flex flex-col gap-6 rounded-tarjeta bg-blanco p-5 shadow-tarjeta sm:p-6">
+      <section className="flex flex-col gap-6 rounded-tarjeta bg-blanco p-5 shadow-tarjeta sm:p-6 lg:col-start-2">
         <Campo
           label="Tu nombre"
           name="nombre"
@@ -101,7 +101,7 @@ export default function FormPerfil({ perfil, bienvenida }) {
         </fieldset>
       </section>
 
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap items-center gap-4 lg:col-span-2">
         <Boton type="submit" cargando={guardando} className="min-w-40">
           {bienvenida ? "Listo" : "Guardar"}
         </Boton>
